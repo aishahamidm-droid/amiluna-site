@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AmiLuna Gallery</title>
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+  
+</head>
+
+<body>
+
+  <div class="rotate-hint">
+  <iconify-icon icon="mdi:screen-rotation"></iconify-icon>
+  <span style="font-size: 10px; color: #f1e194; font-family: sans-serif;">Rotate for immersive view</span>
+</div>
+
+  <!-- Top Navigation -->
+  <header class="site-header">
+    <div class="logo">AmiLuna</div>
+
+    <nav class="nav">
+  <a href="#home">Home</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="collections.html">Collections</a>
+  <a href="about.html">About</a>
+</nav>
+  </header>
+
+  <section class="hero" id="home">
+  <div class="hero-media">
+    <canvas id="webgl"></canvas>
+  </div>
+
+  <div class="hero-content">
+    <p class="eyebrow">Digital Canvas Experience</p>
+    <h1>Where Art, Space, and Atmosphere Meet</h1>
+    <p class="hero-text">
+      Step into the world of AmiLuna, a curated digital gallery designed
+      to present art with elegance, warmth, and immersive visual presence.
+    </p>
+
+    <div class="hero-actions">
+      <a href="gallery.html" class="btn btn-primary">Explore Gallery</a>
+      <a href="collections.html" class="btn btn-secondary">View Collections</a>
+    </div>
+  </div>
+<div class="hero-bottom-bar">
+  <div class="hero-bottom-left">
+    <a href="javascript:void(0)" onclick="openContact()" class="hero-connect-item">
+  <iconify-icon icon="mdi:email-outline"></iconify-icon>
+  <span>Contact</span>
+</a>
+
+<a href="javascript:void(0)" onclick="openSubscribe()" class="hero-connect-item">
+  <iconify-icon icon="mdi:bell-outline"></iconify-icon>
+  <span>Subscribe</span>
+</a>
+
+    <a href="https://www.instagram.com/amiluna_wallarts/" target="_blank" class="hero-connect-item">
+      <iconify-icon icon="mdi:instagram"></iconify-icon>
+      <span>Instagram</span>
+    </a>
+  </div>
+
+  <h2 class="hero-galleria-title">
+    <span class="la">La</span>
+    <span class="galleria">Galleria</span>
+  </h2>
+
+  <div class="hero-bottom-right">
+    <a href="https://www.facebook.com/profile.php?id=61587633143481" target="_blank" class="hero-connect-item">
+      <iconify-icon icon="mdi:facebook"></iconify-icon>
+      <span>Facebook</span>
+    </a>
+
+    <a href="https://www.linkedin.com/in/aisha-mohamed-056a5b156" target="_blank" class="hero-connect-item">
+      <iconify-icon icon="mdi:linkedin"></iconify-icon>
+      <span>LinkedIn</span>
+    </a>
+
+    <a href="https://www.tiktok.com/@amiluna_wallarts?lang=en" target="_blank" class="hero-connect-item">
+      <iconify-icon icon="ic:baseline-tiktok"></iconify-icon>
+      <span>TikTok</span>
+    </a>
+  </div>
+</div>
+</section>
+
+  <script type="module" src="/script.js"></script>
+
+  <div id="form-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 id="modal-title">Contact AmiLuna</h3>
+    <p id="modal-desc">Reach out to us directly.</p>
+    
+    <form action="https://formspree.io/f/xreyvdee" method="POST">
+      <input type="email" name="email" placeholder="Your Email Address" required>
+      
+      <div id="message-area">
+        <textarea name="message" placeholder="Your Message"></textarea>
+      </div>
+
+      <div class="modal-btns">
+        <button type="submit" class="submit-btn">SUBMIT</button>
+        <button type="button" class="cancel-btn" onclick="closeForm()">CANCEL</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

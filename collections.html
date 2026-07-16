@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collections | AmiLuna</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="collections.css">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="logo">AMILUNA</div>
+    <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="collections.html" class="active">Collections</a>
+        <a href="about.html">About</a>
+    </nav>
+</header>
+
+<main class="collections-wrapper">
+    <div id="collections-landing" class="collections-container">
+        <div class="collections-intro">
+            <p class="eyebrow">Curated Wall Art</p>
+            <h1>Collections</h1>
+            <p>Browse AmiLuna by mood, botanical language, and visual atmosphere.</p>
+        </div>
+
+        <div class="collection-list">
+            <button class="item active" type="button" data-col="signatures">
+                <span class="num">01</span>
+                <span class="item-copy">
+                    <span class="title">The Signatures</span>
+                    <span class="desc">A full showcase of AmiLuna's floral and abstract canvas pieces.</span>
+                </span>
+                <span class="count">22 pieces</span>
+            </button>
+            <button class="item" type="button" data-col="botanical">
+                <span class="num">02</span>
+                <span class="item-copy">
+                    <span class="title">Modern Botanical</span>
+                    <span class="desc">Leaf forms, soft florals, and grounded natural palettes.</span>
+                </span>
+                <span class="count">10 pieces</span>
+            </button>
+            <button class="item" type="button" data-col="aureate">
+                <span class="num">03</span>
+                <span class="item-copy">
+                    <span class="title">The Aureate Edition</span>
+                    <span class="desc">Gold accents, mandala energy, and luminous abstract detail.</span>
+                </span>
+                <span class="count">1 piece</span>
+            </button>
+            <button class="item" type="button" data-col="calla">
+                <span class="num">04</span>
+                <span class="item-copy">
+                    <span class="title">Calla Lily</span>
+                    <span class="desc">Elegant calla studies designed for calm, refined interiors.</span>
+                </span>
+                <span class="count">8 pieces</span>
+            </button>
+            <button class="item" type="button" data-col="eternal">
+                <span class="num">05</span>
+                <span class="item-copy">
+                    <span class="title">Eternal Affection</span>
+                    <span class="desc">Romantic florals with warm, expressive color and softness.</span>
+                </span>
+                <span class="count">3 pieces</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="product-stage" class="product-grid-stage hidden">
+        <div class="stage-header">
+            <button id="back-to-collections" class="back-btn">← BACK TO COLLECTIONS</button>
+            <h1 id="stage-title" class="stage-title">Collection</h1>
+        </div>
+        <div class="products-3d-grid" id="product-inventory"></div>
+    </div>
+</main>
+
+<script type="module" src="./collections.js"></script>
+</body>
+</html>
