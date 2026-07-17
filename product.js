@@ -63,10 +63,14 @@ function buildImageList(product) {
 
 function buildVariantState(product) {
   const options = Array.isArray(product.options) ? product.options : [];
-  const variants = (product.variants || []).filter(
-    (variant) => variant.is_enabled !== false && variant.is_available !== false
+  const availableVariants = (product.variants || []).filter(
+    (variant) => variant.is_available !== false
   );
-  const fallbackVariant = variants[0] || product.variants?.[0] || null;
+  const preferredVariants = availableVariants.filter(
+    (variant) => variant.is_enabled !== false
+  );
+  const variantPool = preferredVariants.length ? preferredVariants : availableVariants;
+  const fallbackVariant = variantPool[0] || product.variants?.[0] || null;
 
   const selectedOptions = {};
   options.forEach((option) => {
@@ -78,11 +82,11 @@ function buildVariantState(product) {
 
     function findMatchingVariant() {
         if (!options.length) {
-            return fallbackVariant;
+          return fallbackVariant;
         }
 
         return (
-          variants.find((variant) =>
+          variantPool.find((variant) =>
         options.every((option, index) => String(variant.options?.[index]) === String(selectedOptions[option.name]))
       ) || fallbackVariant
     );
