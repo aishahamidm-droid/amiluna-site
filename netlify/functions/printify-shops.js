@@ -31,7 +31,13 @@ export async function handler(event) {
 
     return jsonResponse(safeError.statusCode, {
       ok: false,
-      error: safeError.message
+      error: safeError.message,
+      debug: {
+        http_status_code: safeError.details?.printify_status_code ?? safeError.statusCode,
+        printify_error_body: safeError.details?.printify_error_body ?? null,
+        printify_api_token_found: safeError.details?.printify_api_token_found ?? Boolean(process.env.PRINTIFY_API_TOKEN?.trim()),
+        authorization_header_sent: safeError.details?.authorization_header_sent ?? Boolean(process.env.PRINTIFY_API_TOKEN?.trim())
+      }
     });
   }
 }

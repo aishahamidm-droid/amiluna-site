@@ -81,7 +81,22 @@ export function toSafeErrorPayload(error, fallbackMessage) {
 }
 
 export async function printifyRequest(path, { method = "GET", body } = {}) {
-  const token = getPrintifyApiToken();
+  const token = process.env.PRINTIFY_API_TOKEN?.trim() || "";
+  const tokenFound = Boolean(token);
+  const authorizationHeaderSent = tokenFound;
+
+  if (!tokenFound) {
+    throw new PrintifyError("Missing required environment variable: PRINTIFY_API_TOKEN", {
+      statusCode: 500,
+      details: {
+        printify_status_code: null,
+        printify_error_body: null,
+        printify_api_token_found: false,
+        authorization_header_sent: false
+      },
+      expose: true
+    });
+  }
 
   const response = await fetch(`${PRINTIFY_API_BASE_URL}${path}`, {
     method,
@@ -97,7 +112,12 @@ export async function printifyRequest(path, { method = "GET", body } = {}) {
   if (!response.ok) {
     throw new PrintifyError(buildSafeErrorMessage(response.status, responseBody), {
       statusCode: response.status,
-      details: typeof responseBody === "object" ? responseBody : null,
+      details: {
+        printify_status_code: response.status,
+        printify_error_body: responseBody ?? null,
+        printify_api_token_found: tokenFound,
+        authorization_header_sent: authorizationHeaderSent
+      },
       expose: true
     });
   }
