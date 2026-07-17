@@ -4,6 +4,8 @@ import {
   toSafeErrorPayload
 } from "./lib/printify-client.js";
 
+const PRINTIFY_PRODUCTS_BASE_URL = "https://api.printify.com/v1";
+
 function sanitizeProduct(product) {
   return {
     id: product.id,
@@ -42,8 +44,15 @@ export async function handler(event) {
     return methodNotAllowed(["GET"]);
   }
 
+  const shopId = process.env.PRINTIFY_SHOP_ID?.trim() || "";
+  const shopIdFound = Boolean(shopId);
+  const encodedShopId = shopIdFound ? encodeURIComponent(shopId) : "";
+  const printifyUrl = shopIdFound
+    ? `${PRINTIFY_PRODUCTS_BASE_URL}/shops/${encodedShopId}/products.json`
+    : `${PRINTIFY_PRODUCTS_BASE_URL}/shops/{PRINTIFY_SHOP_ID}/products.json`;
+
   try {
-    const response = await fetchPrintifyProducts();
+    const response = await fetchPrintifyProducts(shopId);
     const rawProducts = Array.isArray(response?.data) ? response.data : [];
     const products = rawProducts.map(sanitizeProduct);
 
@@ -60,7 +69,14 @@ export async function handler(event) {
 
     return jsonResponse(safeError.statusCode, {
       ok: false,
-      error: safeError.message
+      error: safeError.message,
+      debug: {
+        printify_shop_id_found: shopIdFound,
+        printify_shop_id_value: shopIdFound ? shopId : null,
+        printify_url_called: printifyUrl,
+        http_status_code: safeError.details?.printify_status_code ?? safeError.statusCode,
+        printify_response_body: safeError.details?.printify_error_body ?? null
+      }
     });
   }
 }
