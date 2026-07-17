@@ -1,77 +1,193 @@
-// MASTER DATA: Titles mapped to art ID
-const artData = {
-    1: { title: "Vibrant Multicolor Calla" },
-    2: { title: "Solara Verde" },
-    3: { title: "Moonlit Calla" },
-    4: { title: "TerraMuse" },
-    5: { title: "Midnight Reverie" },
-    6: { title: "Eternal Bloom" },
-    7: { title: "Velora Flora" },
-    8: { title: "Forever Yours - Romantic Red Rose" },
-    9: { title: "Celora Poise" },
-    11: { title: "Soft Pink Calla" },
-    12: { title: "Sage Halo" },
-    13: { title: "Classic White Calla" },
-    14: { title: "Monvera Noir" },
-    15: { title: "Blush Dahlia" },
-    17: { title: "Aurora Petalis" },
-    18: { title: "Pure Grace Calla" },
-    19: { title: "Blush Whisper" },
-    20: { title: "Soft Petals Calla" },
-    21: { title: "Emberleaf Harmony" },
-    22: { title: "Elegant White Calla" },
-    23: { title: "Lunara Bloom" },
-    24: { title: "Blush Dahlia" }
-};
-
-// COLLECTIONS CONFIGURATION
 const collections = {
-    signatures: Array.from({ length: 24 }, (_, i) => i + 1),
-    botanical: [2, 4, 7, 9, 12, 14, 17, 19, 21, 23],
-    calla: [22, 20, 18, 13, 11, 6, 1, 3],
-    aureate: [5],
-    eternal: [8, 24, 15]
+    signatures: {
+        title: "The Signatures",
+        keywords: []
+    },
+    botanical: {
+        title: "Modern Botanical",
+        keywords: ["botanical", "leaf", "nature", "flora"]
+    },
+    calla: {
+        title: "Calla Lily",
+        keywords: ["calla", "lily"]
+    },
+    aureate: {
+        title: "The Aureate Edition",
+        keywords: ["aureate", "gold", "mandala", "luminous", "midnight reverie"]
+    },
+    eternal: {
+        title: "Eternal Affection",
+        keywords: ["romantic", "rose", "blush", "eternal", "affection", "love"]
+    }
 };
 
 const landing = document.getElementById("collections-landing");
 const stage = document.getElementById("product-stage");
 const inventory = document.getElementById("product-inventory");
 const stageTitle = document.getElementById("stage-title");
+const backButton = document.getElementById("back-to-collections");
 
-function loadCollection(type) {
-    inventory.innerHTML = "";
-    const ids = collections[type];
+let productCache = [];
+let fetchState = "idle";
+let activeCollectionType = "signatures";
 
-    const displayTitles = {
-        signatures: "The Signatures",
-        botanical: "Modern Botanical",
-        calla: "Calla Lily",
-        aureate: "The Aureate Edition",
-        eternal: "Eternal Affection"
-    };
+function formatPrice(value) {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        return "Price unavailable";
+    }
 
-    stageTitle.innerText = displayTitles[type];
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD"
+    }).format(value / 100);
+}
 
-    ids.forEach((id) => {
-        const item = artData[id];
-        inventory.innerHTML += `
-            <div class="product-card">
-                <div class="card-3d">
-                    <div class="face art-face"><img src="artworks/art${id}.jpg" alt="${item.title}"></div>
-                    <div class="face room-face"><img src="artworks/art${id}Pic1.png" alt="${item.title} Room"></div>
-                </div>
-                <div class="product-info">
-                    <h3>${item.title}</h3>
-                </div>
-            </div>`;
+function getPrimaryImage(product) {
+    const images = Array.isArray(product.images) ? product.images : [];
+    return (
+        images.find((image) => image.is_default)?.src ||
+        images[0]?.src ||
+        ""
+    );
+}
+
+function getPrimaryPrice(product) {
+    const variants = Array.isArray(product.variants) ? product.variants : [];
+    const enabledVariants = variants.filter((variant) => variant.is_enabled !== false);
+    const pool = enabledVariants.length ? enabledVariants : variants;
+    const priced = pool.filter((variant) => typeof variant.price === "number");
+
+    if (!priced.length) {
+        return null;
+    }
+
+    return Math.min(...priced.map((variant) => variant.price));
+}
+
+function normalizeText(value) {
+    return String(value || "").toLowerCase();
+}
+
+function getCollectionProducts(type, products) {
+    const config = collections[type];
+
+    if (!config || !config.keywords.length) {
+        return products;
+    }
+
+    const filtered = products.filter((product) => {
+        const haystack = [
+            product.title,
+            product.description,
+            ...(product.tags || [])
+        ]
+            .map(normalizeText)
+            .join(" ");
+
+        return config.keywords.some((keyword) => haystack.includes(keyword));
     });
 
+    return filtered.length ? filtered : products;
+}
+
+function showStageStatus(title, message, actionLabel = "") {
+    inventory.innerHTML = `
+        <div class="stage-status">
+            <p class="stage-status-kicker">${title}</p>
+            <h3>${message}</h3>
+            ${actionLabel ? `<button class="buy-now-btn retry-btn" type="button" id="retry-products">${actionLabel}</button>` : ""}
+        </div>
+    `;
+
+    const retryButton = document.getElementById("retry-products");
+    if (retryButton) {
+        retryButton.addEventListener("click", () => {
+            void loadCollection(activeCollectionType, { forceRefresh: true });
+        });
+    }
+}
+
+function renderProducts(type, products) {
+    inventory.innerHTML = "";
+
+    const items = getCollectionProducts(type, products);
+
+    if (!items.length) {
+        showStageStatus("No products yet", "This collection is still being prepared.");
+        return;
+    }
+
+    items.forEach((product) => {
+        const image = getPrimaryImage(product);
+        const price = getPrimaryPrice(product);
+
+        inventory.insertAdjacentHTML(
+            "beforeend",
+            `
+                <article class="product-card live-product">
+                    <div class="card-3d">
+                        <div class="face art-face">
+                            ${image ? `<img src="${image}" alt="${product.title}">` : `<div class="product-image-fallback">Artwork preview coming soon</div>`}
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3>${product.title}</h3>
+                        <p>${formatPrice(price)}</p>
+                        <button class="buy-now-btn" type="button">Buy Now</button>
+                    </div>
+                </article>
+            `
+        );
+    });
+}
+
+async function fetchProducts(forceRefresh = false) {
+    if (fetchState === "loaded" && !forceRefresh) {
+        return productCache;
+    }
+
+    fetchState = "loading";
+
+    const response = await fetch("/.netlify/functions/printify-products", {
+        headers: {
+            Accept: "application/json"
+        }
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Unable to load products right now.");
+    }
+
+    productCache = Array.isArray(payload.products) ? payload.products : [];
+    fetchState = "loaded";
+    return productCache;
+}
+
+async function loadCollection(type, { forceRefresh = false } = {}) {
+    activeCollectionType = type;
+    stageTitle.innerText = collections[type]?.title || "Collection";
+    showStageStatus("Loading products", "Please give us a moment while AmiLuna prepares the collection.");
     landing.style.opacity = "0";
+
     setTimeout(() => {
         landing.style.display = "none";
         stage.classList.remove("hidden");
         window.scrollTo(0, 0);
     }, 500);
+
+    try {
+        const products = await fetchProducts(forceRefresh);
+        renderProducts(type, products);
+    } catch (error) {
+        fetchState = "error";
+        showStageStatus(
+            "Unable to load products",
+            error.message || "Please try again in a moment.",
+            "Try Again"
+        );
+    }
 }
 
 document.querySelectorAll(".item").forEach((item) => {
@@ -83,25 +199,15 @@ document.querySelectorAll(".item").forEach((item) => {
     item.addEventListener("mouseenter", setFocus);
     item.addEventListener("focus", setFocus);
     item.addEventListener("click", () => {
-        if (item.dataset.col) loadCollection(item.dataset.col);
+        if (item.dataset.col) {
+            void loadCollection(item.dataset.col);
+        }
     });
 });
 
 // Back Navigation
-document.getElementById("back-to-collections").onclick = () => {
+backButton.onclick = () => {
     stage.classList.add("hidden");
     landing.style.display = "flex";
     setTimeout(() => (landing.style.opacity = "1"), 50);
 };
-
-// Add click-to-flip functionality for mobile users
-document.addEventListener("click", (e) => {
-    const card = e.target.closest(".product-card");
-    if (card) {
-        card.classList.toggle("flipped");
-
-        document.querySelectorAll(".product-card").forEach((c) => {
-            if (c !== card) c.classList.remove("flipped");
-        });
-    }
-});
