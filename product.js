@@ -66,10 +66,7 @@ function buildVariantState(product) {
   const availableVariants = (product.variants || []).filter(
     (variant) => variant.is_available !== false
   );
-  const preferredVariants = availableVariants.filter(
-    (variant) => variant.is_enabled !== false
-  );
-  const variantPool = preferredVariants.length ? preferredVariants : availableVariants;
+  const variantPool = availableVariants.length ? availableVariants : (product.variants || []);
   const fallbackVariant = variantPool[0] || product.variants?.[0] || null;
 
   const selectedOptions = {};
