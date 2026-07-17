@@ -28,7 +28,7 @@ function renderEmptyState() {
       <div class="summary-row"><span>Subtotal</span><strong>${formatPrice(0)}</strong></div>
       <div class="summary-row"><span>Estimated shipping</span><strong>${formatPrice(0)}</strong></div>
       <div class="summary-row total-row"><span>Total</span><strong>${formatPrice(0)}</strong></div>
-      <p class="summary-note">Checkout will be introduced in the next phase, once payment and fulfillment are wired in securely.</p>
+      <p class="summary-note">Once you add a piece, you will be able to continue into checkout and confirm delivery details.</p>
     </div>
   `;
 }
@@ -40,10 +40,10 @@ function renderSummary() {
       <div class="summary-row"><span>Subtotal</span><strong>${formatPrice(getCartSubtotalCents())}</strong></div>
       <div class="summary-row"><span>Estimated shipping</span><strong>${formatPrice(getEstimatedShippingCents())}</strong></div>
       <div class="summary-row total-row"><span>Estimated total</span><strong>${formatPrice(getEstimatedTotalCents())}</strong></div>
-      <p class="summary-note">This shipping figure is an estimate for planning only. Final shipping and secure checkout will be added in the next phase.</p>
+      <p class="summary-note">This shipping figure is still an estimate. The checkout page verifies order totals on the server before payment is introduced.</p>
       <div class="summary-actions">
         <a class="primary-btn" href="collections.html">Add More Art</a>
-        <button class="secondary-btn" type="button" disabled>Checkout arrives in Phase 2</button>
+        <a class="secondary-btn" href="checkout.html">Continue to Checkout</a>
       </div>
     </div>
   `;

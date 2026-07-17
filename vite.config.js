@@ -10,7 +10,8 @@ export default defineConfig({
         collections: resolve(__dirname, 'collections.html'),
         about: resolve(__dirname, 'about.html'),
         product: resolve(__dirname, 'product.html'),
-        cart: resolve(__dirname, 'cart.html')
+        cart: resolve(__dirname, 'cart.html'),
+        checkout: resolve(__dirname, 'checkout.html')
       }
     }
   }
