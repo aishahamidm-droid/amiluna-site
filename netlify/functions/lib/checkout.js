@@ -1,6 +1,7 @@
 import { fetchPrintifyProducts } from "./printify-client.js";
+import { STORE_CURRENCY } from "../../../store-config.js";
 
-const SHIPPING_CURRENCY = "USD";
+const SHIPPING_CURRENCY = STORE_CURRENCY;
 
 function toPositiveInteger(value, fallback = 0) {
   const normalized = Number.parseInt(value, 10);
@@ -72,7 +73,13 @@ function buildCheckoutItems(cartItems, lookup) {
     }
 
     const variant = productRecord.variantMap.get(cartItem.variantId);
-    if (!variant) {
+    if (
+      !variant ||
+      variant.is_enabled === false ||
+      variant.is_available === false ||
+      typeof variant.price !== "number" ||
+      variant.price <= 0
+    ) {
       continue;
     }
 
@@ -181,7 +188,7 @@ export function validateCheckoutPayload(payload) {
   };
 }
 
-export async function buildCheckoutSummary(payload) {
+export async function buildCheckoutContext(payload) {
   const validation = validateCheckoutPayload(payload);
   if (!validation.ok) {
     return validation;
@@ -192,11 +199,11 @@ export async function buildCheckoutSummary(payload) {
   const lookup = buildVariantLookup(products);
   const items = buildCheckoutItems(validation.cartItems, lookup);
 
-  if (!items.length) {
+  if (!items.length || items.length !== validation.cartItems.length) {
     return {
       ok: false,
       statusCode: 400,
-      error: "We could not verify the items in your cart."
+      error: "We could not verify every item in your cart."
     };
   }
 
@@ -211,6 +218,7 @@ export async function buildCheckoutSummary(payload) {
   return {
     ok: true,
     statusCode: 200,
+    customer: validation.customer,
     summary: {
       currency: SHIPPING_CURRENCY,
       items,
@@ -219,5 +227,19 @@ export async function buildCheckoutSummary(payload) {
       shipping,
       totalCents: subtotalCents + shipping.amountCents
     }
+  };
+}
+
+export async function buildCheckoutSummary(payload) {
+  const result = await buildCheckoutContext(payload);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true,
+    statusCode: 200,
+    summary: result.summary
   };
 }

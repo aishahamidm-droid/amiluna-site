@@ -7,14 +7,22 @@ import {
 import { readCheckoutDraft, writeCheckoutDraft } from "./checkout-store.js";
 import { formatPrice } from "./storefront-api.js";
 import { prepareCheckoutSummary } from "./shipping-service.js";
+import { initializePaystackPayment } from "./checkout-service.js";
+import { savePendingPayment } from "./payment-store.js";
 
 const form = document.getElementById("checkout-form");
 const feedback = document.getElementById("checkout-feedback");
+const paymentFeedback = document.getElementById("payment-feedback");
 const itemsContainer = document.getElementById("checkout-items");
 const summaryContainer = document.getElementById("checkout-summary");
 const loadingState = document.getElementById("checkout-loading");
 const refreshButton = document.getElementById("refresh-summary-btn");
 const saveButton = document.getElementById("save-checkout-btn");
+const paystackButton = document.getElementById("paystack-button");
+
+let isSummaryLoading = false;
+let isPaymentLoading = false;
+let verifiedSummary = null;
 
 function getCustomerFromForm() {
   const formData = new FormData(form);
@@ -44,10 +52,43 @@ function setFeedback(message, type = "default") {
   feedback.className = `checkout-feedback${type === "error" ? " is-error" : ""}${type === "success" ? " is-success" : ""}`;
 }
 
-function setLoading(isLoading) {
-  loadingState.hidden = !isLoading;
+function setPaymentFeedback(message, type = "default") {
+  if (!message) {
+    paymentFeedback.hidden = true;
+    paymentFeedback.textContent = "";
+    paymentFeedback.className = "checkout-feedback";
+    return;
+  }
+
+  paymentFeedback.hidden = false;
+  paymentFeedback.textContent = message;
+  paymentFeedback.className = `checkout-feedback${type === "error" ? " is-error" : ""}${type === "success" ? " is-success" : ""}`;
+}
+
+function syncLoadingState() {
+  const isLoading = isSummaryLoading || isPaymentLoading;
+  loadingState.hidden = !isSummaryLoading;
   refreshButton.disabled = isLoading;
   saveButton.disabled = isLoading;
+  paystackButton.disabled = isLoading || !verifiedSummary;
+  paystackButton.textContent = isPaymentLoading
+    ? "Connecting to Paystack..."
+    : "Pay securely with Paystack";
+}
+
+function setSummaryLoading(isLoading) {
+  isSummaryLoading = isLoading;
+  syncLoadingState();
+}
+
+function setPaymentLoading(isLoading) {
+  isPaymentLoading = isLoading;
+  syncLoadingState();
+}
+
+function resetVerifiedSummary() {
+  verifiedSummary = null;
+  syncLoadingState();
 }
 
 function renderEmptyCheckout() {
@@ -102,6 +143,7 @@ function renderDraftCartItems(items) {
 }
 
 function renderSummary(summary) {
+  verifiedSummary = summary;
   renderCartItems(summary.items);
 
   summaryContainer.innerHTML = `
@@ -110,6 +152,8 @@ function renderSummary(summary) {
     <div class="summary-row"><span>${summary.shipping.label}</span><strong>${formatPrice(summary.shipping.amountCents)}</strong></div>
     <div class="summary-row total-row"><span>Total</span><strong>${formatPrice(summary.totalCents)}</strong></div>
   `;
+
+  syncLoadingState();
 }
 
 function populateDraft() {
@@ -165,6 +209,7 @@ async function refreshSummary({ showSuccess = false } = {}) {
   const items = getCartItems();
 
   if (!items.length) {
+    resetVerifiedSummary();
     renderEmptyCheckout();
     setFeedback("Your cart is empty. Add a piece before continuing to checkout.", "error");
     return;
@@ -172,13 +217,15 @@ async function refreshSummary({ showSuccess = false } = {}) {
 
   const validation = validateForm();
   if (!validation.valid) {
+    resetVerifiedSummary();
     setFeedback(validation.message, "error");
     return;
   }
 
   writeCheckoutDraft(validation.customer);
-  setLoading(true);
+  setSummaryLoading(true);
   setFeedback("");
+  setPaymentFeedback("");
 
   try {
     const summary = await prepareCheckoutSummary(items, validation.customer);
@@ -190,9 +237,10 @@ async function refreshSummary({ showSuccess = false } = {}) {
       "success"
     );
   } catch (error) {
+    resetVerifiedSummary();
     setFeedback(error.message || "Unable to refresh the checkout summary right now.", "error");
   } finally {
-    setLoading(false);
+    setSummaryLoading(false);
   }
 }
 
@@ -234,9 +282,11 @@ function bindCartActions() {
     if (validation.valid) {
       await refreshSummary();
     } else if (!getCartItems().length) {
+      resetVerifiedSummary();
       renderEmptyCheckout();
       setFeedback("Your cart is empty. Add a piece before continuing to checkout.", "error");
     } else {
+      resetVerifiedSummary();
       renderDraftCartItems(getCartItems());
       setFeedback("Cart updated. Complete your delivery details to refresh the verified order total.", "default");
     }
@@ -245,7 +295,13 @@ function bindCartActions() {
 
 function initDraftAutosave() {
   form.addEventListener("input", () => {
+    const hadVerifiedSummary = Boolean(verifiedSummary);
     writeCheckoutDraft(getCustomerFromForm());
+
+    if (hadVerifiedSummary) {
+      resetVerifiedSummary();
+      setPaymentFeedback("Refresh your verified totals after changing delivery details.", "default");
+    }
   });
 }
 
@@ -258,6 +314,55 @@ function initForm() {
   refreshButton.addEventListener("click", async () => {
     await refreshSummary();
   });
+
+  paystackButton.addEventListener("click", async () => {
+    const items = getCartItems();
+    if (!items.length) {
+      resetVerifiedSummary();
+      renderEmptyCheckout();
+      setPaymentFeedback("Your cart is empty. Add a piece before starting payment.", "error");
+      return;
+    }
+
+    const validation = validateForm();
+    if (!validation.valid) {
+      resetVerifiedSummary();
+      setFeedback(validation.message, "error");
+      setPaymentFeedback("Please complete your delivery details before paying.", "error");
+      return;
+    }
+
+    writeCheckoutDraft(validation.customer);
+
+    if (!verifiedSummary) {
+      await refreshSummary();
+      if (!verifiedSummary) {
+        setPaymentFeedback("Please refresh your verified totals before continuing to Paystack.", "error");
+        return;
+      }
+    }
+
+    setPaymentLoading(true);
+    setPaymentFeedback("");
+
+    try {
+      const payment = await initializePaystackPayment(items, validation.customer);
+      savePendingPayment({
+        reference: payment.reference,
+        checkoutReference: payment.checkoutReference,
+        sessionToken: payment.sessionToken,
+        createdAt: new Date().toISOString()
+      });
+      window.location.href = payment.authorizationUrl;
+    } catch (error) {
+      setPaymentFeedback(
+        error.message || "We could not connect you to Paystack right now. Please try again.",
+        "error"
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  });
 }
 
 function initCheckout() {
@@ -268,6 +373,7 @@ function initCheckout() {
 
   const items = getCartItems();
   if (!items.length) {
+    resetVerifiedSummary();
     renderEmptyCheckout();
     setFeedback("Your cart is empty. Add a piece before continuing to checkout.", "error");
   } else {
@@ -283,6 +389,7 @@ function initCheckout() {
     const validation = validateForm();
 
     if (!getCartItems().length) {
+      resetVerifiedSummary();
       renderEmptyCheckout();
       setFeedback("Your cart is empty. Add a piece before continuing to checkout.", "error");
       return;
@@ -293,9 +400,12 @@ function initCheckout() {
       return;
     }
 
+    resetVerifiedSummary();
     renderDraftCartItems(getCartItems());
     setFeedback("Cart updated. Complete your delivery details to refresh the verified order total.", "default");
   });
+
+  syncLoadingState();
 }
 
 initCheckout();

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmation | AmiLuna</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="commerce.css">
+    <link rel="stylesheet" href="payment-result.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo">AMILUNA</div>
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="collections.html">Collections</a>
+            <a href="about.html">About</a>
+        </nav>
+    </header>
+
+    <main class="payment-page">
+        <section class="payment-shell">
+            <article class="payment-card" id="payment-card">
+                <p class="section-kicker">Payment Confirmation</p>
+                <h1 id="payment-title">Verifying your payment</h1>
+                <p id="payment-message">Please hold for a moment while we confirm your Paystack transaction on the server.</p>
+
+                <div class="payment-status" id="payment-status" aria-live="polite">
+                    <div class="status-spinner" id="payment-spinner"></div>
+                </div>
+
+                <div id="payment-summary" class="payment-summary" hidden></div>
+
+                <div class="payment-actions" id="payment-actions">
+                    <a class="secondary-btn" href="checkout.html">Return to checkout</a>
+                    <a class="primary-btn" href="collections.html">Continue shopping</a>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script type="module" src="./commerce-ui.js"></script>
+    <script type="module" src="./payment-result.js"></script>
+</body>
+</html>

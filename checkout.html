@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout | AmiLuna</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="commerce.css">
     <link rel="stylesheet" href="checkout.css">
@@ -22,9 +23,9 @@
     <main class="checkout-page">
         <section class="checkout-shell">
             <div class="checkout-copy">
-                <p class="section-kicker">Secure Checkout Preparation</p>
+                <p class="section-kicker">Secure Checkout</p>
                 <h1>Complete your AmiLuna order details</h1>
-                <p>Review your artwork, confirm delivery details, and prepare your order for secure payment in the next phase.</p>
+                <p>Review your artwork, confirm delivery details, and continue to a secure Paystack test payment once your totals are verified on the server.</p>
             </div>
 
             <div class="checkout-layout">
@@ -103,8 +104,14 @@
                         <div id="checkout-items" class="checkout-items" aria-live="polite"></div>
                         <div id="checkout-summary" class="checkout-summary"></div>
                         <div class="summary-footer">
+                            <div class="payment-method-card">
+                                <p class="section-kicker">Payment method</p>
+                                <h3>Pay securely with Paystack</h3>
+                                <p>We verify your cart, shipping, and total on the server before sending you to Paystack test checkout.</p>
+                            </div>
                             <p>Shipping is currently a structured estimate. Live carrier or Printify rate integration will be added in a future phase.</p>
-                            <button class="primary-btn payment-btn" type="button" disabled>Payment arrives in Phase 3</button>
+                            <div id="payment-feedback" class="checkout-feedback" hidden aria-live="polite"></div>
+                            <button class="primary-btn payment-btn" type="button" id="paystack-button" disabled>Pay securely with Paystack</button>
                         </div>
                     </div>
                 </aside>

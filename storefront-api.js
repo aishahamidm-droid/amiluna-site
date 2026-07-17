@@ -1,3 +1,5 @@
+import { STORE_CURRENCY, STORE_LOCALE } from "./store-config.js";
+
 const PRODUCTS_ENDPOINT = "/.netlify/functions/printify-products";
 let productsPromise = null;
 
@@ -6,9 +8,9 @@ export function formatPrice(cents) {
     return "Price unavailable";
   }
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(STORE_LOCALE, {
     style: "currency",
-    currency: "USD"
+    currency: STORE_CURRENCY
   }).format(cents / 100);
 }
 

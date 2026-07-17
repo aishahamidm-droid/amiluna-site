@@ -4,3 +4,8 @@
 
 [functions]
   directory = "netlify/functions"
+
+[[redirects]]
+  from = "/favicon.ico"
+  to = "/favicon.svg"
+  status = 301
