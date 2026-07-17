@@ -16,6 +16,18 @@ function sanitizeProduct(product) {
     print_provider_id: product.print_provider_id,
     created_at: product.created_at,
     updated_at: product.updated_at,
+    options: Array.isArray(product.options)
+      ? product.options.map((option) => ({
+          name: option.name,
+          type: option.type,
+          values: Array.isArray(option.values)
+            ? option.values.map((value) => ({
+                id: value.id,
+                title: value.title
+              }))
+            : []
+        }))
+      : [],
     variants: Array.isArray(product.variants)
       ? product.variants.map((variant) => ({
           id: variant.id,

@@ -1,3 +1,11 @@
+import {
+    fetchProducts as fetchStorefrontProducts,
+    formatPrice,
+    getLowestPrice,
+    getPrimaryImage,
+    normalizeText
+} from "./storefront-api.js";
+
 const collections = {
     signatures: {
         title: "The Signatures",
@@ -30,43 +38,6 @@ const backButton = document.getElementById("back-to-collections");
 let productCache = [];
 let fetchState = "idle";
 let activeCollectionType = "signatures";
-
-function formatPrice(value) {
-    if (typeof value !== "number" || Number.isNaN(value)) {
-        return "Price unavailable";
-    }
-
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD"
-    }).format(value / 100);
-}
-
-function getPrimaryImage(product) {
-    const images = Array.isArray(product.images) ? product.images : [];
-    return (
-        images.find((image) => image.is_default)?.src ||
-        images[0]?.src ||
-        ""
-    );
-}
-
-function getPrimaryPrice(product) {
-    const variants = Array.isArray(product.variants) ? product.variants : [];
-    const enabledVariants = variants.filter((variant) => variant.is_enabled !== false);
-    const pool = enabledVariants.length ? enabledVariants : variants;
-    const priced = pool.filter((variant) => typeof variant.price === "number");
-
-    if (!priced.length) {
-        return null;
-    }
-
-    return Math.min(...priced.map((variant) => variant.price));
-}
-
-function normalizeText(value) {
-    return String(value || "").toLowerCase();
-}
 
 function getCollectionProducts(type, products) {
     const config = collections[type];
@@ -119,7 +90,7 @@ function renderProducts(type, products) {
 
     items.forEach((product) => {
         const image = getPrimaryImage(product);
-        const price = getPrimaryPrice(product);
+        const price = getLowestPrice(product);
 
         inventory.insertAdjacentHTML(
             "beforeend",
@@ -133,7 +104,10 @@ function renderProducts(type, products) {
                     <div class="product-info">
                         <h3>${product.title}</h3>
                         <p>${formatPrice(price)}</p>
-                        <button class="buy-now-btn" type="button">Buy Now</button>
+                        <div class="product-actions">
+                            <a class="details-link" href="product.html?id=${product.id}">View Details</a>
+                            <a class="buy-now-btn" href="product.html?id=${product.id}">Buy Now</a>
+                        </div>
                     </div>
                 </article>
             `
@@ -147,22 +121,13 @@ async function fetchProducts(forceRefresh = false) {
     }
 
     fetchState = "loading";
-
-    const response = await fetch("/.netlify/functions/printify-products", {
-        headers: {
-            Accept: "application/json"
-        }
-    });
-
-    const payload = await response.json().catch(() => ({}));
-
-    if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Unable to load products right now.");
-    }
-
-    productCache = Array.isArray(payload.products) ? payload.products : [];
+    productCache = await fetchProductsFromApi(forceRefresh);
     fetchState = "loaded";
     return productCache;
+}
+
+async function fetchProductsFromApi(forceRefresh = false) {
+    return fetchStorefrontProducts({ forceRefresh });
 }
 
 async function loadCollection(type, { forceRefresh = false } = {}) {

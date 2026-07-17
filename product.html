@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product | AmiLuna</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="commerce.css">
+    <link rel="stylesheet" href="product.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo">AMILUNA</div>
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="collections.html">Collections</a>
+            <a href="about.html">About</a>
+        </nav>
+    </header>
+
+    <main class="product-page">
+        <div class="product-shell">
+            <a class="back-link" href="collections.html">Back to Collections</a>
+            <section class="product-stage" id="product-stage" aria-live="polite"></section>
+        </div>
+
+        <section class="related-section" id="related-section" hidden>
+            <div class="related-copy">
+                <p class="section-kicker">Related works</p>
+                <h2>You may also like</h2>
+            </div>
+            <div class="related-grid" id="related-grid"></div>
+        </section>
+    </main>
+
+    <script type="module" src="./commerce-ui.js"></script>
+    <script type="module" src="./product.js"></script>
+</body>
+</html>

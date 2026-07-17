@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart | AmiLuna</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="commerce.css">
+    <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo">AMILUNA</div>
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="collections.html">Collections</a>
+            <a href="about.html">About</a>
+        </nav>
+    </header>
+
+    <main class="cart-page">
+        <section class="cart-shell">
+            <div class="cart-copy">
+                <p class="section-kicker">Shopping Cart</p>
+                <h1>Your AmiLuna selections</h1>
+                <p>Review your pieces, adjust quantities, and stay ready for checkout in the next phase.</p>
+            </div>
+
+            <div class="cart-layout">
+                <section class="cart-items-panel" id="cart-items-panel" aria-live="polite"></section>
+                <aside class="cart-summary-panel" id="cart-summary-panel"></aside>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="./commerce-ui.js"></script>
+    <script type="module" src="./cart.js"></script>
+</body>
+</html>
