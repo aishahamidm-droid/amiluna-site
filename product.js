@@ -3,7 +3,6 @@ import {
   fetchProductById,
   fetchProducts,
   formatPrice,
-  getProductGalleryImages,
   getPrimaryImage,
   getRelatedProducts,
   getVariantPrice
@@ -56,14 +55,10 @@ function renderSkeleton() {
 }
 
 function buildImageList(product) {
-  const galleryImages = Array.isArray(product.galleryImages) ? product.galleryImages : [];
-
-  if (galleryImages.length) {
-    return galleryImages;
-  }
-
-  const images = getProductGalleryImages(product);
-  return images.length ? images : [getPrimaryImage(product)].filter(Boolean);
+  const images = Array.isArray(product.images) ? product.images : [];
+  return images.length
+    ? images.map((image) => image.src)
+    : [getPrimaryImage(product)].filter(Boolean);
 }
 
 function buildVariantState(product) {
