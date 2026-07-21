@@ -3,6 +3,57 @@ import { STORE_CURRENCY, STORE_LOCALE } from "./store-config.js";
 const PRODUCTS_ENDPOINT = "/.netlify/functions/printify-products";
 let productsPromise = null;
 
+const LOCAL_ARTWORK_GALLERY = [
+  { title: "Vibrant Multicolor Calla", baseName: "art1" },
+  { title: "Moonlit Calla", baseName: "art3" },
+  { title: "Midnight Reverie", baseName: "art5" },
+  { title: "Velora Flora", baseName: "art7" },
+  { title: "Forever Yours - Romantic Red Rose", baseName: "art8" },
+  { title: "Sage Halo", baseName: "art12" },
+  { title: "Classic White Calla", baseName: "art13" },
+  { title: "Elegant White Calla", baseName: "art22" },
+  { title: "Solara Verde", baseName: "art2" },
+  { title: "TerraMuse", baseName: "art4" },
+  { title: "Eternal Bloom", baseName: "art6" },
+  { title: "Celora Poise", baseName: "art9" },
+  { title: "Soft Pink Calla", baseName: "art11" },
+  { title: "Monvera Noir", baseName: "art14" },
+  { title: "Blush Dahlia", baseName: "art15" },
+  { title: "Aurora Petalis", baseName: "art17" },
+  { title: "Pure Grace Calla", baseName: "art18" },
+  { title: "Blush Whisper", baseName: "art19" },
+  { title: "Soft Petals Calla", baseName: "art20" },
+  { title: "Emberleaf Harmony", baseName: "art21" },
+  { title: "Lunara Bloom", baseName: "art23" }
+];
+
+function buildLocalGalleryImages(baseName) {
+  return [
+    `/artworks/${baseName}.jpg`,
+    ...Array.from({ length: 5 }, (_, index) => `/artworks/${baseName}Pic${index + 1}.png`)
+  ];
+}
+
+function getLocalArtworkGallery(product) {
+  const title = normalizeText(product?.title);
+  const match = LOCAL_ARTWORK_GALLERY.find((artwork) => normalizeText(artwork.title) === title);
+
+  if (!match) {
+    return [];
+  }
+
+  return buildLocalGalleryImages(match.baseName);
+}
+
+export function getProductGalleryImages(product) {
+  const remoteImages = Array.isArray(product?.images)
+    ? product.images.map((image) => image?.src).filter(Boolean)
+    : [];
+  const localImages = getLocalArtworkGallery(product);
+
+  return Array.from(new Set([...remoteImages, ...localImages]));
+}
+
 export function formatPrice(cents) {
   if (typeof cents !== "number" || Number.isNaN(cents)) {
     return "Price unavailable";
@@ -16,9 +67,12 @@ export function formatPrice(cents) {
 
 export function getPrimaryImage(product) {
   const images = Array.isArray(product.images) ? product.images : [];
+  const localGallery = getLocalArtworkGallery(product);
+
   return (
     images.find((image) => image.is_default)?.src ||
     images[0]?.src ||
+    localGallery[0] ||
     ""
   );
 }
@@ -56,7 +110,12 @@ export async function fetchProducts({ forceRefresh = false } = {}) {
           throw new Error(payload.error || "Unable to load products.");
         }
 
-        return Array.isArray(payload.products) ? payload.products : [];
+        return Array.isArray(payload.products)
+          ? payload.products.map((product) => ({
+              ...product,
+              galleryImages: getProductGalleryImages(product)
+            }))
+          : [];
       });
   }
 
