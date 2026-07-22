@@ -110,7 +110,7 @@ body::before {
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
     gap: 24px;
-    align-items: stretch;
+    align-items: start;
     max-width: 1440px;
     margin: 0 auto;
 }
@@ -126,7 +126,8 @@ body::before {
 .tour-stage {
     position: relative;
     overflow: hidden;
-    min-height: min(64vh, 705px);
+    height: min(64svh, 705px);
+    min-height: 0;
 }
 
 #gallery-tour-canvas {
@@ -257,7 +258,7 @@ body::before {
     }
 
     .tour-stage {
-        min-height: min(57.4vh, 590px);
+        height: min(57.4svh, 590px);
     }
 }
 
@@ -293,7 +294,7 @@ body::before {
     }
 
     .tour-stage {
-        min-height: 59svh;
+        height: 59svh;
     }
 
     .tour-overlay {
@@ -340,7 +341,7 @@ body::before {
     }
 
     .tour-stage {
-        min-height: 56svh;
+        height: 56svh;
     }
 
     .tour-panel {
