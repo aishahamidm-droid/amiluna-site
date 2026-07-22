@@ -13,8 +13,11 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x131919);
 scene.fog = new THREE.Fog(0x131919, 28, 62);
 
-const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 200);
-camera.position.set(0, 5.7, 18.4);
+const camera = new THREE.PerspectiveCamera(62.4, 1, 0.1, 200);
+camera.position.set(0, 6.27, 18.4);
+
+const CAMERA_HEIGHT_MULTIPLIER = 1.1;
+const TOUR_PLAYBACK_RATE = 0.95;
 
 const renderer = new THREE.WebGLRenderer({
   canvas,
@@ -649,6 +652,7 @@ const tempTarget = new THREE.Vector3();
 function applyFrame(frameState) {
   tempPosition.lerpVectors(frameState.from.position, frameState.to.position, frameState.progress);
   tempTarget.lerpVectors(frameState.from.target, frameState.to.target, frameState.progress);
+  tempPosition.y *= CAMERA_HEIGHT_MULTIPLIER;
   camera.position.copy(tempPosition);
   camera.lookAt(tempTarget);
   updateOverlay(frameState.from);
@@ -661,7 +665,7 @@ function animate(now) {
   lastTick = now;
 
   if (!paused) {
-    currentTime = (currentTime + delta) % totalDuration;
+    currentTime = (currentTime + delta * TOUR_PLAYBACK_RATE) % totalDuration;
   }
 
   const frameState = getFrameAt(currentTime);

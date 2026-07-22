@@ -126,7 +126,7 @@ body::before {
 .tour-stage {
     position: relative;
     overflow: hidden;
-    min-height: min(78vh, 860px);
+    min-height: min(64vh, 705px);
 }
 
 #gallery-tour-canvas {
@@ -257,7 +257,7 @@ body::before {
     }
 
     .tour-stage {
-        min-height: min(70vh, 720px);
+        min-height: min(57.4vh, 590px);
     }
 }
 
@@ -293,7 +293,7 @@ body::before {
     }
 
     .tour-stage {
-        min-height: 72svh;
+        min-height: 59svh;
     }
 
     .tour-overlay {
@@ -340,7 +340,7 @@ body::before {
     }
 
     .tour-stage {
-        min-height: 68svh;
+        min-height: 56svh;
     }
 
     .tour-panel {
