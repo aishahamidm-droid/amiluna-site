@@ -23,38 +23,40 @@
 
 <main class="gallery-page">
     <section class="gallery-copy">
-        <p class="category-label">Photo Gallery</p>
-        <h1>AmiLuna Gallery Showcase</h1>
-        <p class="subtext">A calmer curated wall of artwork with one featured piece and a clean browse layout.</p>
-
-        <div class="gallery-filters">
-            <button class="filter-btn active" data-filter="vertical">Vertical</button>
-            <button class="filter-btn" data-filter="horizontal">Horizontal</button>
-        </div>
+        <p class="category-label">Gallery Film</p>
+        <h1>AmiLuna Room Tour</h1>
+        <p class="subtext">A guided cinematic walk through the room, moving across each artwork before returning to the center piece.</p>
     </section>
 
-    <div class="mobile-hint">Tap an artwork to expand</div>
-
-    <div class="hero-wrapper" id="hero-viewer">
-        <div class="hero-main-view">
-            <img id="hero-img" src="" alt="Hero View">
-        </div>
-        <aside class="hero-sidebar">
-            <span class="close-btn" id="close-hero">&times;</span>
-            <div class="hero-text">
-                <h2 id="hero-title">Artwork Title</h2>
+    <section class="tour-showcase" aria-label="AmiLuna gallery walkthrough">
+        <div class="tour-stage">
+            <canvas id="gallery-tour-canvas" aria-label="Animated walkthrough of the AmiLuna gallery room"></canvas>
+            <div class="tour-overlay">
+                <p class="tour-kicker">Now Viewing</p>
+                <h2 id="tour-step-title">Entrance</h2>
+                <p id="tour-step-caption">Beginning at the entrance before drifting toward the left wall collection.</p>
             </div>
-            <div class="hero-thumbnails" id="hero-thumb-strip"></div>
-        </aside>
-    </div>
+            <div class="tour-controls">
+                <button type="button" id="tour-toggle">Pause</button>
+                <button type="button" id="tour-restart">Restart</button>
+                <button type="button" id="tour-audio-toggle">Sound On</button>
+            </div>
+        </div>
 
-    <section class="gallery-curation" id="gallery-container">
-        <section class="spotlight-stage" id="featured-card"></section>
-        <section class="gallery-grid" id="gallery-grid" aria-label="Artwork gallery"></section>
+        <aside class="tour-panel">
+            <p class="tour-panel-label">Camera path</p>
+            <h3>Scene order</h3>
+            <p class="tour-panel-copy">The music is a soft built-in ambient loop designed to feel calm and unobtrusive while the camera moves through the room.</p>
+            <div class="tour-outline" id="tour-outline"></div>
+        </aside>
     </section>
 </main>
 
-<script type="module" src="./gallery.js"></script>
+<audio id="gallery-tour-audio" loop preload="auto">
+    <source src="./audio/amiluna-gallery-ambient.wav" type="audio/wav" />
+</audio>
+
+<script type="module" src="./gallery-tour.js"></script>
 <script type="module" src="./commerce-ui.js"></script>
 </body>
 </html>
