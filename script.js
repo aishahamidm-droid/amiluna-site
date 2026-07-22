@@ -12,6 +12,14 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf1f3f5);
 scene.fog = new THREE.Fog(0xf1f3f5, 34, 68);
 
+function getRenderScale() {
+  if (window.innerWidth <= 640) {
+    return 1;
+  }
+
+  return Math.min(window.devicePixelRatio, 1.25);
+}
+
 function getViewType() {
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -87,7 +95,7 @@ const renderer = new THREE.WebGLRenderer({
   powerPreference: "high-performance"
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(getRenderScale());
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -133,9 +141,9 @@ RectAreaLightUniformsLib.init();
 ----------------------------- */
 const textureLoader = new THREE.TextureLoader();
 
-const woodColor = textureLoader.load(buildPublicAssetUrl("textures/wood/color.jpg"));
-const woodNormal = textureLoader.load(buildPublicAssetUrl("textures/wood/normal.jpg"));
-const woodRough = textureLoader.load(buildPublicAssetUrl("textures/wood/rough.jpg"));
+const woodColor = textureLoader.load(buildPublicAssetUrl("hero/textures/wood/color.jpg"));
+const woodNormal = textureLoader.load(buildPublicAssetUrl("hero/textures/wood/normal.jpg"));
+const woodRough = textureLoader.load(buildPublicAssetUrl("hero/textures/wood/rough.jpg"));
 
 woodColor.wrapS = woodColor.wrapT = THREE.RepeatWrapping;
 woodNormal.wrapS = woodNormal.wrapT = THREE.RepeatWrapping;
@@ -147,7 +155,7 @@ woodRough.repeat.set(8, 12);
 
 woodColor.colorSpace = THREE.SRGBColorSpace;
 
-const plasterColor = textureLoader.load(buildPublicAssetUrl("textures/wall/wall.jpg"));
+const plasterColor = textureLoader.load(buildPublicAssetUrl("hero/textures/wall/wall.jpg"));
 plasterColor.wrapS = plasterColor.wrapT = THREE.RepeatWrapping;
 plasterColor.repeat.set(1.4, 0.8);
 plasterColor.colorSpace = THREE.SRGBColorSpace;
@@ -218,8 +226,8 @@ scene.add(hemi);
 const daylight = new THREE.DirectionalLight(0xffffff, 0.25);
 daylight.position.set(7, 15, 10);
 daylight.castShadow = true;
-daylight.shadow.mapSize.width = 2048;
-daylight.shadow.mapSize.height = 2048;
+daylight.shadow.mapSize.width = 1024;
+daylight.shadow.mapSize.height = 1024;
 daylight.shadow.camera.left = -24;
 daylight.shadow.camera.right = 24;
 daylight.shadow.camera.top = 24;
@@ -539,7 +547,7 @@ scene.add(outsideBackdrop);
    ART TEXTURES
 ----------------------------- */
 function loadSpecificTexture(fileName) {
-  const tex = textureLoader.load(buildPublicAssetUrl(`artworks/${fileName}`));
+  const tex = textureLoader.load(buildPublicAssetUrl(`hero/artworks/${fileName}`));
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
@@ -837,7 +845,7 @@ world.add(pedestal);
    SUBTLE DUST
 ----------------------------- */
 const dustGeo = new THREE.BufferGeometry();
-const dustCount = 110;
+const dustCount = 48;
 const dustPos = new Float32Array(dustCount * 3);
 
 for (let i = 0; i < dustCount; i++) {
@@ -865,7 +873,7 @@ scene.add(dust);
 window.addEventListener("resize", () => {
   applyCameraView();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(getRenderScale());
 });
 
 /* -----------------------------

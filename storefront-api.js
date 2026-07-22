@@ -2,6 +2,7 @@ import { STORE_CURRENCY, STORE_LOCALE } from "./store-config.js";
 import { buildFunctionUrl } from "./site-runtime.js";
 
 const PRODUCTS_ENDPOINT = buildFunctionUrl("/.netlify/functions/printify-products");
+const PRODUCTS_FALLBACK_ENDPOINT = "./data/products.json";
 let productsPromise = null;
 
 export function formatPrice(cents) {
@@ -45,23 +46,42 @@ export function normalizeText(value) {
 
 export async function fetchProducts({ forceRefresh = false } = {}) {
   if (!productsPromise || forceRefresh) {
-    productsPromise = fetch(PRODUCTS_ENDPOINT, {
-      headers: {
-        Accept: "application/json"
-      }
-    })
-      .then(async (response) => {
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok || !payload.ok) {
-          throw new Error(payload.error || "Unable to load products.");
-        }
-
-        return Array.isArray(payload.products) ? payload.products : [];
-      });
+    productsPromise = fetchRemoteProducts().catch(() => fetchFallbackProducts());
   }
 
   return productsPromise;
+}
+
+async function fetchRemoteProducts() {
+  const response = await fetch(PRODUCTS_ENDPOINT, {
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.error || "Unable to load products.");
+  }
+
+  return Array.isArray(payload.products) ? payload.products : [];
+}
+
+async function fetchFallbackProducts() {
+  const response = await fetch(PRODUCTS_FALLBACK_ENDPOINT, {
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.error || "Unable to load products.");
+  }
+
+  return Array.isArray(payload.products) ? payload.products : [];
 }
 
 export async function fetchProductById(productId) {

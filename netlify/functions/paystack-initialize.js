@@ -1,5 +1,5 @@
 import { buildCheckoutContext } from "./lib/checkout.js";
-import { jsonResponse, methodNotAllowed } from "./lib/http.js";
+import { jsonResponse, methodNotAllowed, optionsResponse } from "./lib/http.js";
 import {
   createCheckoutSessionToken,
   generateCheckoutReference,
@@ -26,6 +26,10 @@ function sanitizeCustomerForPayment(customer) {
 }
 
 export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return optionsResponse();
+  }
+
   if (event.httpMethod !== "POST") {
     return methodNotAllowed(["POST"]);
   }

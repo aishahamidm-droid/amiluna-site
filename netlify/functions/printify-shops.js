@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed } from "./lib/http.js";
+import { jsonResponse, methodNotAllowed, optionsResponse } from "./lib/http.js";
 import {
   fetchPrintifyShops,
   toSafeErrorPayload
@@ -12,6 +12,10 @@ function sanitizeShop(shop) {
 }
 
 export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return optionsResponse();
+  }
+
   if (event.httpMethod !== "GET") {
     return methodNotAllowed(["GET"]);
   }

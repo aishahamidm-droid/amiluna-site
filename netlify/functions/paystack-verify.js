@@ -1,5 +1,5 @@
 import { readCheckoutSessionToken } from "./lib/checkout-session.js";
-import { jsonResponse, methodNotAllowed } from "./lib/http.js";
+import { jsonResponse, methodNotAllowed, optionsResponse } from "./lib/http.js";
 import {
   toSafePaystackErrorPayload,
   verifyPaystackTransaction
@@ -35,6 +35,10 @@ function buildSuccessPayload(session, transaction) {
 }
 
 export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return optionsResponse();
+  }
+
   if (event.httpMethod !== "POST") {
     return methodNotAllowed(["POST"]);
   }

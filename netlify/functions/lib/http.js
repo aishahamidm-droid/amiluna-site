@@ -1,9 +1,17 @@
-export function jsonResponse(statusCode, payload) {
+const DEFAULT_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Cache-Control": "no-store",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization"
+};
+
+export function jsonResponse(statusCode, payload, headers = {}) {
   return {
     statusCode,
     headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store"
+      ...DEFAULT_HEADERS,
+      ...headers
     },
     body: JSON.stringify(payload)
   };
@@ -15,4 +23,12 @@ export function methodNotAllowed(allowedMethods) {
     error: "Method not allowed",
     allowedMethods
   });
+}
+
+export function optionsResponse() {
+  return {
+    statusCode: 204,
+    headers: DEFAULT_HEADERS,
+    body: ""
+  };
 }

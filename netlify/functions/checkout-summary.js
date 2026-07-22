@@ -1,8 +1,12 @@
-import { jsonResponse, methodNotAllowed } from "./lib/http.js";
+import { jsonResponse, methodNotAllowed, optionsResponse } from "./lib/http.js";
 import { buildCheckoutSummary } from "./lib/checkout.js";
 import { toSafeErrorPayload } from "./lib/printify-client.js";
 
 export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return optionsResponse();
+  }
+
   if (event.httpMethod !== "POST") {
     return methodNotAllowed(["POST"]);
   }
