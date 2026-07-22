@@ -1,3 +1,5 @@
+import { buildPublicAssetUrl } from "./site-runtime.js";
+
 const artworks = [
     { file: "art1.jpg", title: "Vibrant Multicolor Calla", orientation: "vertical", section: "Calla Lily", blurb: "Layered floral detail for elegant portrait walls." },
     { file: "art3.jpg", title: "Moonlit Calla", orientation: "vertical", section: "Calla Lily", blurb: "A darker, moodier calla composition with soft drama." },
@@ -46,7 +48,7 @@ function getFilteredArtworks() {
 }
 
 function getPreviewImages(baseName) {
-    return Array.from({ length: 5 }, (_, index) => `/artworks/${baseName}Pic${index + 1}.png`);
+    return Array.from({ length: 5 }, (_, index) => buildPublicAssetUrl(`artworks/${baseName}Pic${index + 1}.png`));
 }
 
 function renderViewerDots() {
@@ -74,7 +76,7 @@ function setViewerImage(index) {
 
 function openViewer(artwork) {
     const baseName = artwork.file.replace(".jpg", "");
-    const mainPath = `/artworks/${artwork.file}`;
+    const mainPath = buildPublicAssetUrl(`artworks/${artwork.file}`);
     heroTitle.innerText = artwork.title;
     viewerImages = [mainPath, ...getPreviewImages(baseName)];
     viewerIndex = 0;
@@ -98,7 +100,7 @@ function renderSpotlight(filtered) {
                 <button class="spotlight-open" type="button">Open artwork</button>
             </div>
             <div class="spotlight-frame">
-                <img src="/artworks/${artwork.file}" alt="${artwork.title}">
+                <img src="${buildPublicAssetUrl(`artworks/${artwork.file}`)}" alt="${artwork.title}">
             </div>
         </article>
     `;
@@ -116,7 +118,7 @@ function createTile(artwork, index) {
     tile.className = `gallery-tile tile-${artwork.orientation}${isActive ? " active" : ""}`;
     tile.innerHTML = `
         <div class="artwork-frame">
-            <img src="/artworks/${artwork.file}" alt="${artwork.title}">
+            <img src="${buildPublicAssetUrl(`artworks/${artwork.file}`)}" alt="${artwork.title}">
         </div>
         <div class="artwork-copy">
             <p class="artwork-kicker">${artwork.section}</p>

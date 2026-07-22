@@ -1,6 +1,8 @@
-const CHECKOUT_SUMMARY_ENDPOINT = "/.netlify/functions/checkout-summary";
-const PAYSTACK_INITIALIZE_ENDPOINT = "/.netlify/functions/paystack-initialize";
-const PAYSTACK_VERIFY_ENDPOINT = "/.netlify/functions/paystack-verify";
+import { buildFunctionUrl } from "./site-runtime.js";
+
+const CHECKOUT_SUMMARY_ENDPOINT = buildFunctionUrl("/.netlify/functions/checkout-summary");
+const PAYSTACK_INITIALIZE_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-initialize");
+const PAYSTACK_VERIFY_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-verify");
 
 export async function fetchCheckoutSummary(cartItems, customer) {
   const response = await fetch(CHECKOUT_SUMMARY_ENDPOINT, {

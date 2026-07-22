@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
+import { buildPublicAssetUrl } from "./site-runtime.js";
 
 const canvas = document.getElementById("webgl");
 
@@ -132,9 +133,9 @@ RectAreaLightUniformsLib.init();
 ----------------------------- */
 const textureLoader = new THREE.TextureLoader();
 
-const woodColor = textureLoader.load("/textures/wood/color.jpg");
-const woodNormal = textureLoader.load("/textures/wood/normal.jpg");
-const woodRough = textureLoader.load("/textures/wood/rough.jpg");
+const woodColor = textureLoader.load(buildPublicAssetUrl("textures/wood/color.jpg"));
+const woodNormal = textureLoader.load(buildPublicAssetUrl("textures/wood/normal.jpg"));
+const woodRough = textureLoader.load(buildPublicAssetUrl("textures/wood/rough.jpg"));
 
 woodColor.wrapS = woodColor.wrapT = THREE.RepeatWrapping;
 woodNormal.wrapS = woodNormal.wrapT = THREE.RepeatWrapping;
@@ -146,7 +147,7 @@ woodRough.repeat.set(8, 12);
 
 woodColor.colorSpace = THREE.SRGBColorSpace;
 
-const plasterColor = textureLoader.load("/textures/wall/wall.jpg");
+const plasterColor = textureLoader.load(buildPublicAssetUrl("textures/wall/wall.jpg"));
 plasterColor.wrapS = plasterColor.wrapT = THREE.RepeatWrapping;
 plasterColor.repeat.set(1.4, 0.8);
 plasterColor.colorSpace = THREE.SRGBColorSpace;
@@ -538,7 +539,7 @@ scene.add(outsideBackdrop);
    ART TEXTURES
 ----------------------------- */
 function loadSpecificTexture(fileName) {
-  const tex = textureLoader.load(`/artworks/${fileName}`);
+  const tex = textureLoader.load(buildPublicAssetUrl(`artworks/${fileName}`));
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }

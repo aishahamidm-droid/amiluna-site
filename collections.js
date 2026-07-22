@@ -5,6 +5,7 @@ import {
     getPrimaryImage,
     normalizeText
 } from "./storefront-api.js";
+import { buildPublicAssetUrl } from "./site-runtime.js";
 
 const LOCAL_ARTWORK_LOOKUP = [
     { artId: 1, title: "Vibrant Multicolor Calla", aliases: ["vibrant multicolor calla lily canvas wall art", "vibrant multicolor calla lily canvas wall art modern floral home decor"] },
@@ -83,8 +84,8 @@ function getCardArtwork(product) {
     }
 
     return {
-        image: `/artworks/art${artwork.artId}.jpg`,
-        hoverImage: `/artworks/art${artwork.artId}Pic1.png`,
+        image: buildPublicAssetUrl(`artworks/art${artwork.artId}.jpg`),
+        hoverImage: buildPublicAssetUrl(`artworks/art${artwork.artId}Pic1.png`),
         title: artwork.title
     };
 }

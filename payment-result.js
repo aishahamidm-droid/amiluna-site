@@ -1,5 +1,6 @@
 import { clearCart } from "./cart-store.js";
 import { formatPrice } from "./storefront-api.js";
+import { buildFunctionUrl } from "./site-runtime.js";
 import {
   clearPendingPayment,
   getPendingPayment,
@@ -7,7 +8,7 @@ import {
   saveVerifiedPayment
 } from "./payment-store.js";
 
-const VERIFY_ENDPOINT = "/.netlify/functions/paystack-verify";
+const VERIFY_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-verify");
 
 const titleEl = document.getElementById("payment-title");
 const messageEl = document.getElementById("payment-message");

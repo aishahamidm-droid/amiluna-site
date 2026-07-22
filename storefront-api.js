@@ -1,6 +1,7 @@
 import { STORE_CURRENCY, STORE_LOCALE } from "./store-config.js";
+import { buildFunctionUrl } from "./site-runtime.js";
 
-const PRODUCTS_ENDPOINT = "/.netlify/functions/printify-products";
+const PRODUCTS_ENDPOINT = buildFunctionUrl("/.netlify/functions/printify-products");
 let productsPromise = null;
 
 export function formatPrice(cents) {
