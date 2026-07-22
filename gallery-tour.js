@@ -457,7 +457,7 @@ const sequence = [
     key: "left-one",
     title: "Artwork 1",
     caption: "The first left wall piece is framed in full, like a calm pause in a real gallery room.",
-    position: new THREE.Vector3(-5.9, 5.0, -12.2),
+    position: new THREE.Vector3(-4.4, 5.0, -12.2),
     target: new THREE.Vector3(-13.85, 4.8, -9.0),
     duration: 2.1
   },
@@ -465,7 +465,7 @@ const sequence = [
     key: "left-one",
     title: "Artwork 1",
     caption: "The camera glides a little closer without cropping the artwork.",
-    position: new THREE.Vector3(-7.15, 5.0, -11.35),
+    position: new THREE.Vector3(-5.1, 5.0, -11.35),
     target: new THREE.Vector3(-13.85, 4.8, -9.0),
     duration: 1.8
   },
@@ -473,7 +473,7 @@ const sequence = [
     key: "left-two",
     title: "Artwork 2",
     caption: "Sliding down the left wall to the second work with the full piece still comfortably in view.",
-    position: new THREE.Vector3(-5.45, 5.0, -1.55),
+    position: new THREE.Vector3(-4.2, 5.0, -1.55),
     target: new THREE.Vector3(-13.85, 5.0, -1.5),
     duration: 2.1
   },
@@ -481,7 +481,7 @@ const sequence = [
     key: "left-two",
     title: "Artwork 2",
     caption: "A softer close pass keeps the whole artwork readable.",
-    position: new THREE.Vector3(-6.95, 5.0, -1.55),
+    position: new THREE.Vector3(-4.9, 5.0, -1.55),
     target: new THREE.Vector3(-13.85, 5.0, -1.5),
     duration: 1.8
   },
@@ -489,7 +489,7 @@ const sequence = [
     key: "left-three",
     title: "Artwork 3",
     caption: "The final left wall piece gets the same balanced full-frame treatment.",
-    position: new THREE.Vector3(-5.75, 5.0, 5.2),
+    position: new THREE.Vector3(-4.4, 5.0, 5.2),
     target: new THREE.Vector3(-13.85, 4.8, 5.3),
     duration: 2.1
   },
@@ -497,7 +497,7 @@ const sequence = [
     key: "left-three",
     title: "Artwork 3",
     caption: "The camera settles a touch nearer, then eases away for the cross-room move.",
-    position: new THREE.Vector3(-7.0, 5.0, 5.2),
+    position: new THREE.Vector3(-5.1, 5.0, 5.2),
     target: new THREE.Vector3(-13.85, 4.8, 5.3),
     duration: 1.8
   },
@@ -505,7 +505,7 @@ const sequence = [
     key: "right-one",
     title: "Artwork 4",
     caption: "Crossing to the right wall, the first piece is shown fully from a measured distance.",
-    position: new THREE.Vector3(5.95, 5.0, -12.2),
+    position: new THREE.Vector3(4.4, 5.0, -12.2),
     target: new THREE.Vector3(13.85, 4.8, -9.0),
     duration: 2.5
   },
@@ -513,7 +513,7 @@ const sequence = [
     key: "right-one",
     title: "Artwork 4",
     caption: "A small forward move adds intimacy without cutting off the frame.",
-    position: new THREE.Vector3(7.15, 5.0, -11.35),
+    position: new THREE.Vector3(5.1, 5.0, -11.35),
     target: new THREE.Vector3(13.85, 4.8, -9.0),
     duration: 1.8
   },
@@ -521,7 +521,7 @@ const sequence = [
     key: "right-two",
     title: "Artwork 5",
     caption: "The middle right piece stays fully visible during the slow approach.",
-    position: new THREE.Vector3(5.45, 5.0, -1.55),
+    position: new THREE.Vector3(4.2, 5.0, -1.55),
     target: new THREE.Vector3(13.85, 5.0, -1.5),
     duration: 2.1
   },
@@ -529,7 +529,7 @@ const sequence = [
     key: "right-two",
     title: "Artwork 5",
     caption: "The camera pauses slightly closer while preserving the gallery viewing feel.",
-    position: new THREE.Vector3(6.95, 5.0, -1.55),
+    position: new THREE.Vector3(4.9, 5.0, -1.55),
     target: new THREE.Vector3(13.85, 5.0, -1.5),
     duration: 1.8
   },
@@ -537,7 +537,7 @@ const sequence = [
     key: "right-three",
     title: "Artwork 6",
     caption: "The last right wall work closes the side sweep with the full frame intact.",
-    position: new THREE.Vector3(5.75, 5.0, 5.2),
+    position: new THREE.Vector3(4.4, 5.0, 5.2),
     target: new THREE.Vector3(13.85, 4.8, 5.3),
     duration: 2.1
   },
@@ -545,7 +545,7 @@ const sequence = [
     key: "right-three",
     title: "Artwork 6",
     caption: "A subtle inward drift finishes the right wall before recentering.",
-    position: new THREE.Vector3(7.0, 5.0, 5.2),
+    position: new THREE.Vector3(5.1, 5.0, 5.2),
     target: new THREE.Vector3(13.85, 4.8, 5.3),
     duration: 1.8
   },
