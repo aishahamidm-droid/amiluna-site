@@ -8,7 +8,8 @@ import {
   saveVerifiedPayment
 } from "./payment-store.js";
 
-const VERIFY_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-verify");
+const PAYSTACK_VERIFY_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-verify");
+const PAYPAL_CAPTURE_ENDPOINT = buildFunctionUrl("/.netlify/functions/paypal-capture-order");
 
 const titleEl = document.getElementById("payment-title");
 const messageEl = document.getElementById("payment-message");
@@ -18,7 +19,12 @@ const summaryEl = document.getElementById("payment-summary");
 
 function getReferenceFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("reference") || params.get("trxref") || "";
+  return params.get("reference") || params.get("trxref") || params.get("token") || "";
+}
+
+function getPaymentProviderFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("provider") || (params.has("token") ? "paypal" : "paystack");
 }
 
 function setStatus(message, type = "default") {
@@ -39,7 +45,8 @@ function setStatus(message, type = "default") {
 function renderVerifiedPayment(payment) {
   titleEl.textContent = "Payment confirmed";
   messageEl.textContent = "Your payment has been verified on the server. Your order is being prepared for fulfillment.";
-  setStatus("Paystack payment confirmed and matched to your AmiLuna checkout.", "success");
+  const providerLabel = payment.provider === "paypal" ? "PayPal" : "Card";
+  setStatus(`${providerLabel} payment confirmed and matched to your AmiLuna checkout.`, "success");
 
   summaryEl.hidden = false;
   summaryEl.innerHTML = `
@@ -47,7 +54,8 @@ function renderVerifiedPayment(payment) {
       <h2>Confirmation details</h2>
       <div class="summary-grid">
         <div class="summary-row"><span>Checkout reference</span><strong>${payment.checkoutReference}</strong></div>
-        <div class="summary-row"><span>Paystack reference</span><strong>${payment.reference}</strong></div>
+        <div class="summary-row"><span>Payment provider</span><strong>${providerLabel}</strong></div>
+        <div class="summary-row"><span>Payment reference</span><strong>${payment.reference}</strong></div>
         <div class="summary-row"><span>Customer email</span><strong>${payment.email}</strong></div>
         <div class="summary-row"><span>Subtotal</span><strong>${formatPrice(payment.subtotalCents)}</strong></div>
         <div class="summary-row"><span>${payment.shipping.label}</span><strong>${formatPrice(payment.shipping.amountCents)}</strong></div>
@@ -85,8 +93,8 @@ function renderVerifiedPayment(payment) {
   `;
 }
 
-async function verifyPayment(reference, sessionToken) {
-  const response = await fetch(VERIFY_ENDPOINT, {
+async function verifyPaystackPayment(reference, sessionToken) {
+  const response = await fetch(PAYSTACK_VERIFY_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -107,8 +115,31 @@ async function verifyPayment(reference, sessionToken) {
   return payload.payment;
 }
 
+async function capturePayPalPayment(orderId, sessionToken) {
+  const response = await fetch(PAYPAL_CAPTURE_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      orderId,
+      sessionToken
+    })
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.error || "We could not capture that PayPal payment.");
+  }
+
+  return payload.payment;
+}
+
 async function initPaymentResult() {
   const reference = getReferenceFromUrl();
+  const provider = getPaymentProviderFromUrl();
   const verifiedPayment = reference ? getVerifiedPayment(reference) : null;
 
   if (verifiedPayment) {
@@ -118,7 +149,7 @@ async function initPaymentResult() {
 
   if (!reference) {
     titleEl.textContent = "Payment not confirmed";
-    messageEl.textContent = "We did not receive a Paystack reference to verify.";
+    messageEl.textContent = "We did not receive a payment reference to verify.";
     setStatus("Return to checkout and try your payment again.", "error");
     return;
   }
@@ -134,7 +165,9 @@ async function initPaymentResult() {
 
   try {
     setStatus("", "loading");
-    const verified = await verifyPayment(reference, pendingPayment.sessionToken);
+    const verified = provider === "paypal"
+      ? await capturePayPalPayment(reference, pendingPayment.sessionToken)
+      : await verifyPaystackPayment(reference, pendingPayment.sessionToken);
     saveVerifiedPayment(verified);
     clearPendingPayment(reference);
     clearCart();

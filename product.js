@@ -63,14 +63,35 @@ function buildImageList(product) {
 
 function buildVariantState(product) {
   const options = Array.isArray(product.options) ? product.options : [];
-  const availableVariants = (product.variants || []).filter(
-    (variant) => variant.is_available !== false
+  const enabledAndAvailableVariants = (product.variants || []).filter(
+    (variant) => variant.is_enabled !== false && variant.is_available !== false
   );
+  const availableVariants = enabledAndAvailableVariants.length
+    ? enabledAndAvailableVariants
+    : (product.variants || []).filter((variant) => variant.is_available !== false);
   const variantPool = availableVariants.length ? availableVariants : (product.variants || []);
   const fallbackVariant = variantPool[0] || product.variants?.[0] || null;
 
+  const filteredOptions = options
+    .map((option, optionIndex) => {
+      const allowedValueIds = new Set(
+        variantPool
+          .map((variant) => variant.options?.[optionIndex])
+          .filter((valueId) => valueId !== undefined && valueId !== null)
+          .map(String)
+      );
+
+      return {
+        ...option,
+        values: Array.isArray(option.values)
+          ? option.values.filter((value) => allowedValueIds.has(String(value.id)))
+          : []
+      };
+    })
+    .filter((option) => option.values.length);
+
   const selectedOptions = {};
-  options.forEach((option) => {
+  filteredOptions.forEach((option) => {
     const firstValue = option.values?.[0];
     if (firstValue) {
       selectedOptions[option.name] = firstValue.id;
@@ -78,23 +99,23 @@ function buildVariantState(product) {
   });
 
     function findMatchingVariant() {
-        if (!options.length) {
+        if (!filteredOptions.length) {
           return fallbackVariant;
         }
 
         return (
           variantPool.find((variant) =>
-        options.every((option, index) => String(variant.options?.[index]) === String(selectedOptions[option.name]))
+        filteredOptions.every((option, index) => String(variant.options?.[index]) === String(selectedOptions[option.name]))
       ) || fallbackVariant
     );
   }
 
   function syncFromVariant(variant) {
-    if (!variant || !options.length) {
+    if (!variant || !filteredOptions.length) {
       return;
     }
 
-    options.forEach((option, index) => {
+    filteredOptions.forEach((option, index) => {
       selectedOptions[option.name] = variant.options?.[index];
     });
   }
@@ -102,7 +123,7 @@ function buildVariantState(product) {
   syncFromVariant(fallbackVariant);
 
   return {
-    options,
+    options: filteredOptions,
     get variant() {
       return findMatchingVariant();
     },

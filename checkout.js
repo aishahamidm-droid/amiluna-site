@@ -7,7 +7,10 @@ import {
 import { readCheckoutDraft, writeCheckoutDraft } from "./checkout-store.js";
 import { formatPrice } from "./storefront-api.js";
 import { prepareCheckoutSummary } from "./shipping-service.js";
-import { initializePaystackPayment } from "./checkout-service.js";
+import {
+  initializePaystackPayment,
+  initializePayPalPayment
+} from "./checkout-service.js";
 import { savePendingPayment } from "./payment-store.js";
 
 const form = document.getElementById("checkout-form");
@@ -19,6 +22,7 @@ const loadingState = document.getElementById("checkout-loading");
 const refreshButton = document.getElementById("refresh-summary-btn");
 const saveButton = document.getElementById("save-checkout-btn");
 const paystackButton = document.getElementById("paystack-button");
+const paypalButton = document.getElementById("paypal-button");
 
 let isSummaryLoading = false;
 let isPaymentLoading = false;
@@ -71,9 +75,13 @@ function syncLoadingState() {
   refreshButton.disabled = isLoading;
   saveButton.disabled = isLoading;
   paystackButton.disabled = isLoading || !verifiedSummary;
+  paypalButton.disabled = isLoading || !verifiedSummary;
   paystackButton.textContent = isPaymentLoading
-    ? "Connecting to Paystack..."
-    : "Pay securely with Paystack";
+    ? "Connecting..."
+    : "Pay with Card";
+  paypalButton.textContent = isPaymentLoading
+    ? "Connecting..."
+    : "Pay with PayPal";
 }
 
 function setSummaryLoading(isLoading) {
@@ -348,6 +356,7 @@ function initForm() {
     try {
       const payment = await initializePaystackPayment(items, validation.customer);
       savePendingPayment({
+        provider: "paystack",
         reference: payment.reference,
         checkoutReference: payment.checkoutReference,
         sessionToken: payment.sessionToken,
@@ -357,6 +366,56 @@ function initForm() {
     } catch (error) {
       setPaymentFeedback(
         error.message || "We could not connect you to Paystack right now. Please try again.",
+        "error"
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  });
+
+  paypalButton.addEventListener("click", async () => {
+    const items = getCartItems();
+    if (!items.length) {
+      resetVerifiedSummary();
+      renderEmptyCheckout();
+      setPaymentFeedback("Your cart is empty. Add a piece before starting payment.", "error");
+      return;
+    }
+
+    const validation = validateForm();
+    if (!validation.valid) {
+      resetVerifiedSummary();
+      setFeedback(validation.message, "error");
+      setPaymentFeedback("Please complete your delivery details before paying.", "error");
+      return;
+    }
+
+    writeCheckoutDraft(validation.customer);
+
+    if (!verifiedSummary) {
+      await refreshSummary();
+      if (!verifiedSummary) {
+        setPaymentFeedback("Please refresh your verified totals before continuing to PayPal.", "error");
+        return;
+      }
+    }
+
+    setPaymentLoading(true);
+    setPaymentFeedback("");
+
+    try {
+      const payment = await initializePayPalPayment(items, validation.customer);
+      savePendingPayment({
+        provider: "paypal",
+        reference: payment.orderId,
+        checkoutReference: payment.checkoutReference,
+        sessionToken: payment.sessionToken,
+        createdAt: new Date().toISOString()
+      });
+      window.location.href = payment.approvalUrl;
+    } catch (error) {
+      setPaymentFeedback(
+        error.message || "We could not connect you to PayPal right now. Please try again.",
         "error"
       );
     } finally {

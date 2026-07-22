@@ -25,7 +25,7 @@
             <div class="checkout-copy">
                 <p class="section-kicker">Secure Checkout</p>
                 <h1>Complete your AmiLuna order details</h1>
-                <p>Review your artwork, confirm delivery details, and continue to a secure Paystack test payment once your totals are verified on the server.</p>
+                <p>Review your artwork, confirm delivery details, and continue to a secure card or PayPal payment once your totals are verified on the server.</p>
             </div>
 
             <div class="checkout-layout">
@@ -106,12 +106,15 @@
                         <div class="summary-footer">
                             <div class="payment-method-card">
                                 <p class="section-kicker">Payment method</p>
-                                <h3>Pay securely with Paystack</h3>
-                                <p>We verify your cart, shipping, and total on the server before sending you to Paystack test checkout.</p>
+                                <h3>Choose card or PayPal</h3>
+                                <p>We verify your cart, shipping, and total on the server before sending you to secure payment.</p>
                             </div>
                             <p>Shipping is currently a structured estimate. Live carrier or Printify rate integration will be added in a future phase.</p>
                             <div id="payment-feedback" class="checkout-feedback" hidden aria-live="polite"></div>
-                            <button class="primary-btn payment-btn" type="button" id="paystack-button" disabled>Pay securely with Paystack</button>
+                            <div class="payment-actions-grid">
+                                <button class="primary-btn payment-btn" type="button" id="paystack-button" disabled>Pay with Card</button>
+                                <button class="secondary-btn payment-btn paypal-btn" type="button" id="paypal-button" disabled>Pay with PayPal</button>
+                            </div>
                         </div>
                     </div>
                 </aside>

@@ -17,6 +17,7 @@ function buildSuccessPayload(session, transaction) {
   return {
     ok: true,
     payment: {
+      provider: "paystack",
       checkoutReference: session.checkoutReference,
       reference: session.paystackReference,
       currency: session.summary.currency,

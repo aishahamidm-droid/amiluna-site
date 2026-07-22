@@ -356,6 +356,17 @@ body::before {
     width: 100%;
 }
 
+.payment-actions-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.paypal-btn {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--ink);
+    border-color: rgba(240, 209, 138, 0.26);
+}
+
 .mini-qty-row {
     display: inline-flex;
     align-items: center;
