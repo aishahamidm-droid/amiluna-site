@@ -53,6 +53,17 @@ RectAreaLightUniformsLib.init();
 
 const textureLoader = new THREE.TextureLoader();
 
+// Keep every canvas at the same proportion as its original artwork.
+const artworkAspectRatios = Object.freeze({
+  AAA1: 1581 / 1052,
+  AAA2: 1180 / 1179,
+  AAA3: 1184 / 1190,
+  AAA4: 1565 / 1042,
+  AAA5: 1182 / 1179,
+  AAA6: 1176 / 1179,
+  AAA7: 1032 / 1589
+});
+
 function loadTexture(path, repeatX = 1, repeatY = 1) {
   const texture = textureLoader.load(buildPublicAssetUrl(path));
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -274,7 +285,8 @@ const backdrop = new THREE.Mesh(
 backdrop.position.set(0, 10, -26);
 scene.add(backdrop);
 
-function createArtwork({ width, height, texturePath, frame = "dark" }) {
+function createArtwork({ height, aspectRatio, texturePath, frame = "dark" }) {
+  const width = height * aspectRatio;
   const group = new THREE.Group();
   const artTexture = textureLoader.load(buildPublicAssetUrl(texturePath));
   artTexture.colorSpace = THREE.SRGBColorSpace;
@@ -315,37 +327,37 @@ function createArtwork({ width, height, texturePath, frame = "dark" }) {
   return group;
 }
 
-const leftWallArt1 = createArtwork({ width: 4.8, height: 6.5, texturePath: "artworks/AAA7.jpg", frame: "dark" });
+const leftWallArt1 = createArtwork({ height: 6.5, aspectRatio: artworkAspectRatios.AAA7, texturePath: "artworks/AAA7.jpg", frame: "dark" });
 leftWallArt1.position.set(-13.85, 4.8, -9.0);
 leftWallArt1.rotation.y = Math.PI / 2;
 world.add(leftWallArt1);
 
-const leftWallArt2 = createArtwork({ width: 5.0, height: 5.0, texturePath: "artworks/AAA4.jpg", frame: "light" });
+const leftWallArt2 = createArtwork({ height: 4.5, aspectRatio: artworkAspectRatios.AAA4, texturePath: "artworks/AAA4.jpg", frame: "light" });
 leftWallArt2.position.set(-13.85, 5.0, -1.5);
 leftWallArt2.rotation.y = Math.PI / 2;
 world.add(leftWallArt2);
 
-const leftWallArt3 = createArtwork({ width: 4.8, height: 6.5, texturePath: "artworks/AAA6.jpg", frame: "dark" });
+const leftWallArt3 = createArtwork({ height: 5.3, aspectRatio: artworkAspectRatios.AAA6, texturePath: "artworks/AAA6.jpg", frame: "dark" });
 leftWallArt3.position.set(-13.85, 4.8, 5.3);
 leftWallArt3.rotation.y = Math.PI / 2;
 world.add(leftWallArt3);
 
-const rightWallArt1 = createArtwork({ width: 4.8, height: 6.5, texturePath: "artworks/AAA3.jpg", frame: "dark" });
+const rightWallArt1 = createArtwork({ height: 5.3, aspectRatio: artworkAspectRatios.AAA3, texturePath: "artworks/AAA3.jpg", frame: "dark" });
 rightWallArt1.position.set(13.85, 4.8, -9.0);
 rightWallArt1.rotation.y = -Math.PI / 2;
 world.add(rightWallArt1);
 
-const rightWallArt2 = createArtwork({ width: 5.5, height: 4.5, texturePath: "artworks/AAA1.jpg", frame: "light" });
+const rightWallArt2 = createArtwork({ height: 4.5, aspectRatio: artworkAspectRatios.AAA1, texturePath: "artworks/AAA1.jpg", frame: "light" });
 rightWallArt2.position.set(13.85, 5.0, -1.5);
 rightWallArt2.rotation.y = -Math.PI / 2;
 world.add(rightWallArt2);
 
-const rightWallArt3 = createArtwork({ width: 4.8, height: 6.5, texturePath: "artworks/AAA5.jpg", frame: "dark" });
+const rightWallArt3 = createArtwork({ height: 5.3, aspectRatio: artworkAspectRatios.AAA5, texturePath: "artworks/AAA5.jpg", frame: "dark" });
 rightWallArt3.position.set(13.85, 4.8, 5.3);
 rightWallArt3.rotation.y = -Math.PI / 2;
 world.add(rightWallArt3);
 
-const centerArt = createArtwork({ width: 6.5, height: 6.5, texturePath: "artworks/AAA2.jpg", frame: "dark" });
+const centerArt = createArtwork({ height: 6.5, aspectRatio: artworkAspectRatios.AAA2, texturePath: "artworks/AAA2.jpg", frame: "dark" });
 centerArt.position.set(0, 4.8, -8.02);
 world.add(centerArt);
 
