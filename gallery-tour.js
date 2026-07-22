@@ -8,8 +8,6 @@ const captionEl = document.getElementById("tour-step-caption");
 const outlineEl = document.getElementById("tour-outline");
 const toggleBtn = document.getElementById("tour-toggle");
 const restartBtn = document.getElementById("tour-restart");
-const audioToggleBtn = document.getElementById("tour-audio-toggle");
-const audioEl = document.getElementById("gallery-tour-audio");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x131919);
@@ -455,112 +453,112 @@ const sequence = [
   {
     key: "left-one",
     title: "Artwork 1",
-    caption: "The first left wall piece comes forward with a gentle zoom in and release.",
-    position: new THREE.Vector3(-8.6, 5.15, -11.6),
+    caption: "The first left wall piece is framed in full, like a calm pause in a real gallery room.",
+    position: new THREE.Vector3(-5.9, 5.0, -12.2),
     target: new THREE.Vector3(-13.85, 4.8, -9.0),
     duration: 2.1
   },
   {
     key: "left-one",
     title: "Artwork 1",
-    caption: "Holding close on the first piece before pulling back toward the next stop.",
-    position: new THREE.Vector3(-11.45, 5.0, -9.9),
+    caption: "The camera glides a little closer without cropping the artwork.",
+    position: new THREE.Vector3(-7.15, 5.0, -11.35),
     target: new THREE.Vector3(-13.85, 4.8, -9.0),
     duration: 1.8
   },
   {
     key: "left-two",
     title: "Artwork 2",
-    caption: "Sliding down the left wall to the second work for the same close-in pause.",
-    position: new THREE.Vector3(-8.2, 5.05, -1.55),
+    caption: "Sliding down the left wall to the second work with the full piece still comfortably in view.",
+    position: new THREE.Vector3(-5.45, 5.0, -1.55),
     target: new THREE.Vector3(-13.85, 5.0, -1.5),
     duration: 2.1
   },
   {
     key: "left-two",
     title: "Artwork 2",
-    caption: "A tighter look at the second piece before easing out again.",
-    position: new THREE.Vector3(-11.1, 5.0, -1.55),
+    caption: "A softer close pass keeps the whole artwork readable.",
+    position: new THREE.Vector3(-6.95, 5.0, -1.55),
     target: new THREE.Vector3(-13.85, 5.0, -1.5),
     duration: 1.8
   },
   {
     key: "left-three",
     title: "Artwork 3",
-    caption: "The third left wall piece gets the same slow cinematic rise and retreat.",
-    position: new THREE.Vector3(-8.45, 5.15, 5.15),
+    caption: "The final left wall piece gets the same balanced full-frame treatment.",
+    position: new THREE.Vector3(-5.75, 5.0, 5.2),
     target: new THREE.Vector3(-13.85, 4.8, 5.3),
     duration: 2.1
   },
   {
     key: "left-three",
     title: "Artwork 3",
-    caption: "The camera settles in close, then backs away to prepare the cross-room move.",
-    position: new THREE.Vector3(-11.25, 5.0, 5.15),
+    caption: "The camera settles a touch nearer, then eases away for the cross-room move.",
+    position: new THREE.Vector3(-7.0, 5.0, 5.2),
     target: new THREE.Vector3(-13.85, 4.8, 5.3),
     duration: 1.8
   },
   {
     key: "right-one",
     title: "Artwork 4",
-    caption: "Crossing to the right wall, the first piece is framed from the room edge.",
-    position: new THREE.Vector3(8.8, 5.1, -11.6),
+    caption: "Crossing to the right wall, the first piece is shown fully from a measured distance.",
+    position: new THREE.Vector3(5.95, 5.0, -12.2),
     target: new THREE.Vector3(13.85, 4.8, -9.0),
     duration: 2.5
   },
   {
     key: "right-one",
     title: "Artwork 4",
-    caption: "A closer look on the right side before the tour keeps moving.",
-    position: new THREE.Vector3(11.6, 5.0, -9.9),
+    caption: "A small forward move adds intimacy without cutting off the frame.",
+    position: new THREE.Vector3(7.15, 5.0, -11.35),
     target: new THREE.Vector3(13.85, 4.8, -9.0),
     duration: 1.8
   },
   {
     key: "right-two",
     title: "Artwork 5",
-    caption: "The second right wall work is approached with the same in-and-out motion.",
-    position: new THREE.Vector3(8.2, 5.0, -1.55),
+    caption: "The middle right piece stays fully visible during the slow approach.",
+    position: new THREE.Vector3(5.45, 5.0, -1.55),
     target: new THREE.Vector3(13.85, 5.0, -1.5),
     duration: 2.1
   },
   {
     key: "right-two",
     title: "Artwork 5",
-    caption: "Holding the middle right piece just long enough to let the detail breathe.",
-    position: new THREE.Vector3(11.05, 5.0, -1.55),
+    caption: "The camera pauses slightly closer while preserving the gallery viewing feel.",
+    position: new THREE.Vector3(6.95, 5.0, -1.55),
     target: new THREE.Vector3(13.85, 5.0, -1.5),
     duration: 1.8
   },
   {
     key: "right-three",
     title: "Artwork 6",
-    caption: "The final right wall piece closes the side sweep with one last zoom.",
-    position: new THREE.Vector3(8.4, 5.15, 5.15),
+    caption: "The last right wall work closes the side sweep with the full frame intact.",
+    position: new THREE.Vector3(5.75, 5.0, 5.2),
     target: new THREE.Vector3(13.85, 4.8, 5.3),
     duration: 2.1
   },
   {
     key: "right-three",
     title: "Artwork 6",
-    caption: "The camera eases back and recenters for the closing focus.",
-    position: new THREE.Vector3(11.25, 5.0, 5.15),
+    caption: "A subtle inward drift finishes the right wall before recentering.",
+    position: new THREE.Vector3(7.0, 5.0, 5.2),
     target: new THREE.Vector3(13.85, 4.8, 5.3),
     duration: 1.8
   },
   {
     key: "center",
     title: "Centerpiece",
-    caption: "The walkthrough returns to the center wall and finishes with a final slow zoom.",
-    position: new THREE.Vector3(0, 5.2, 6.0),
+    caption: "The walkthrough returns to the center wall with the statement piece fully framed.",
+    position: new THREE.Vector3(0, 5.1, 8.2),
     target: new THREE.Vector3(0, 4.8, -8.02),
     duration: 2.8
   },
   {
     key: "center",
     title: "Centerpiece",
-    caption: "A soft final push toward the center artwork before the loop begins again.",
-    position: new THREE.Vector3(0, 4.95, 0.75),
+    caption: "A final gentle move in keeps the full artwork visible before the loop begins again.",
+    position: new THREE.Vector3(0, 5.0, 5.9),
     target: new THREE.Vector3(0, 4.8, -8.02),
     duration: 2.4
   }
@@ -602,7 +600,6 @@ let currentTime = 0;
 let activeKey = sequence[0].key;
 let paused = false;
 let lastTick = performance.now();
-let audioEnabled = false;
 
 function setActiveStop(key) {
   if (activeKey === key) return;
@@ -685,46 +682,6 @@ restartBtn.addEventListener("click", () => {
   paused = false;
   toggleBtn.textContent = "Pause";
 });
-
-async function enableAudio() {
-  if (!audioEl) return;
-  audioEl.volume = 0.38;
-  try {
-    await audioEl.play();
-    audioEnabled = true;
-    audioToggleBtn.textContent = "Sound Off";
-  } catch (_error) {
-    audioEnabled = false;
-    audioToggleBtn.textContent = "Sound On";
-  }
-}
-
-function disableAudio() {
-  if (!audioEl) return;
-  audioEl.pause();
-  audioEl.currentTime = 0;
-  audioEnabled = false;
-  audioToggleBtn.textContent = "Sound On";
-}
-
-audioToggleBtn.addEventListener("click", async () => {
-  if (audioEnabled) {
-    disableAudio();
-    return;
-  }
-
-  await enableAudio();
-});
-
-window.addEventListener(
-  "pointerdown",
-  () => {
-    if (!audioEnabled) {
-      enableAudio();
-    }
-  },
-  { once: true }
-);
 
 window.addEventListener("resize", resizeRenderer);
 resizeRenderer();

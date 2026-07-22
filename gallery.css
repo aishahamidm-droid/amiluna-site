@@ -206,13 +206,6 @@ body::before {
     color: #fff7eb;
 }
 
-.tour-panel-copy {
-    margin-top: 12px;
-    color: rgba(236, 238, 225, 0.72);
-    font-size: 0.95rem;
-    line-height: 1.65;
-}
-
 .tour-outline {
     display: grid;
     gap: 12px;
