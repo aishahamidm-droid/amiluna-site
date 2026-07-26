@@ -69,7 +69,7 @@ const collections = {
     },
     aureate: {
         title: "The Aureate Edition",
-        keywords: ["aureate", "gold", "mandala", "luminous", "midnight reverie"]
+        productIds: ["69a2750b0a8a4d5b290e1481"]
     },
     eternal: {
         title: "Eternal Affection",
@@ -102,15 +102,19 @@ function getCardArtwork(product) {
     return {
         image: buildPublicAssetUrl(`artworks/art${artId}.jpg`),
         roomImage: buildPublicAssetUrl(`artworks/art${artId}Pic1.jpg`),
-        title: product.title
+        title: product.title.trim()
     };
 }
 
 function getCollectionProducts(type, products) {
     const config = collections[type];
 
-    if (!config || !config.keywords.length) {
+    if (!config || (!config.keywords?.length && !config.productIds?.length)) {
         return products;
+    }
+
+    if (config.productIds?.length) {
+        return products.filter((product) => config.productIds.includes(String(product.id)));
     }
 
     const filtered = products.filter((product) => {
