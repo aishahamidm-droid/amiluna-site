@@ -101,7 +101,7 @@ function getCardArtwork(product) {
 
     return {
         image: buildPublicAssetUrl(`artworks/art${artId}.jpg`),
-        roomImage: buildPublicAssetUrl(`artworks/art${artId}Pic1.png`),
+        roomImage: buildPublicAssetUrl(`artworks/art${artId}Pic1.jpg`),
         title: product.title
     };
 }
@@ -169,7 +169,7 @@ function renderProducts(type, products) {
                             <img src="${artwork.image}" alt="${artwork.title}" loading="lazy">
                         </div>
                         <div class="face room-face">
-                            <img src="${artwork.roomImage}" alt="${artwork.title} displayed in a room" loading="lazy">
+                            <img src="${artwork.roomImage}" data-fallback-src="${artwork.image}" alt="${artwork.title} displayed in a room" loading="lazy">
                         </div>
                     </div>
                     <div class="product-info">
@@ -198,6 +198,16 @@ function renderProducts(type, products) {
                 togglePreview();
             }
         });
+    });
+
+    inventory.querySelectorAll(".room-face img").forEach((image) => {
+        image.addEventListener("error", () => {
+            const fallbackSource = image.dataset.fallbackSrc;
+            if (fallbackSource && image.src !== new URL(fallbackSource, window.location.href).href) {
+                image.src = fallbackSource;
+                image.alt = `${image.alt.replace(" displayed in a room", "")} artwork preview`;
+            }
+        }, { once: true });
     });
 }
 
