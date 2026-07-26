@@ -65,7 +65,15 @@
                         <!-- Step 2: Custom Setting Input -->
                         <div>
                             <label for="ai-prompt" style="font-size: 0.85rem; color: #ccc; display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Where should it be displayed?</label>
-                            <input type="text" id="ai-prompt" placeholder="e.g. In a baby's nursery, a dim cozy coffee shop, a luxury penthouse..." style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" required />
+                            <input type="text" id="ai-prompt" list="ai-room-suggestions" placeholder="Choose or describe a room, e.g. luxury living room..." style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" required />
+                            <datalist id="ai-room-suggestions">
+                                <option value="a warm, contemporary living room"></option>
+                                <option value="a calm, professional office"></option>
+                                <option value="a serene bedroom"></option>
+                                <option value="a refined dining room"></option>
+                                <option value="a boutique hotel lobby"></option>
+                                <option value="a quiet coffee shop"></option>
+                            </datalist>
                         </div>
 
                         <button type="submit" id="ai-generate-btn" style="padding: 1rem; background: #c5a059; color: #000; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; transition: background 0.2s;">
