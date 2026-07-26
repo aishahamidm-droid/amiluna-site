@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="commerce.css" />
     <link rel="stylesheet" href="gallery.css" />
+    <link rel="stylesheet" href="gallery-mode-switcher.css" />
 </head>
 <body>
 
@@ -81,21 +82,21 @@
             <h3>Select Mode</h3>
             
             <div class="tour-outline">
-                <div class="tour-outline-step active" id="mode-3d-btn" style="cursor: pointer;">
-                    <p class="step-num">01</p>
-                    <div>
-                        <h4>3D Gallery View</h4>
-                        <p>Cinematic walkthrough across the room and featured collection.</p>
-                    </div>
-                </div>
+                <button class="tour-outline-step active" id="mode-3d-btn" type="button" aria-pressed="true">
+                    <span class="step-num">01</span>
+                    <span class="mode-copy">
+                        <span class="mode-title">3D Gallery View</span>
+                        <span class="mode-description">Cinematic walkthrough across the room and featured collection.</span>
+                    </span>
+                </button>
 
-                <div class="tour-outline-step" id="mode-ai-btn" style="cursor: pointer; margin-top: 1rem;">
-                    <p class="step-num">02</p>
-                    <div>
-                        <h4>AI Room Visualizer</h4>
-                        <p>Place chosen artwork in custom real-world settings and environments.</p>
-                    </div>
-                </div>
+                <button class="tour-outline-step" id="mode-ai-btn" type="button" aria-pressed="false">
+                    <span class="step-num">02</span>
+                    <span class="mode-copy">
+                        <span class="mode-title">AI Room Visualizer</span>
+                        <span class="mode-description">Place chosen artwork in custom real-world settings and environments.</span>
+                    </span>
+                </button>
             </div>
         </aside>
     </section>
