@@ -590,19 +590,23 @@ const outlineStops = [
   { key: "center", label: "Step 08", title: "Centerpiece", copy: "The camera recenters and ends on the statement work in the middle." }
 ];
 
-outlineEl.innerHTML = outlineStops
-  .map(
-    (stop) => `
-      <article class="tour-stop" data-stop-key="${stop.key}">
-        <span class="tour-stop-step">${stop.label}</span>
-        <span class="tour-stop-title">${stop.title}</span>
-        <span class="tour-stop-copy">${stop.copy}</span>
-      </article>
-    `
-  )
-  .join("");
+const outlineItems = outlineEl
+  ? (() => {
+      outlineEl.innerHTML = outlineStops
+        .map(
+          (stop) => `
+            <article class="tour-stop" data-stop-key="${stop.key}">
+              <span class="tour-stop-step">${stop.label}</span>
+              <span class="tour-stop-title">${stop.title}</span>
+              <span class="tour-stop-copy">${stop.copy}</span>
+            </article>
+          `
+        )
+        .join("");
 
-const outlineItems = [...outlineEl.querySelectorAll(".tour-stop")];
+      return [...outlineEl.querySelectorAll(".tour-stop")];
+    })()
+  : [];
 
 function easeInOutCubic(value) {
   return value < 0.5
@@ -625,8 +629,9 @@ function setActiveStop(key) {
 }
 
 function updateOverlay(frame) {
-  titleEl.textContent = frame.title;
-  captionEl.textContent = frame.caption;
+  if (titleEl) {
+    titleEl.textContent = frame.title;
+  }
   setActiveStop(frame.key);
 }
 

@@ -23,34 +23,86 @@
 
 <main class="gallery-page">
     <section class="gallery-copy">
-        <p class="category-label">Gallery Film</p>
-        <h1>AmiLuna Room Tour</h1>
-        <p class="subtext">A guided cinematic walk through the room, moving across each artwork before returning to the center piece.</p>
+        <p class="category-label">Interactive Experience</p>
+        <h1 id="experience-title">3D Gallery View</h1>
+        <p class="subtext" id="experience-subtext">A guided cinematic walk through the room, moving across each artwork before returning to the center piece.</p>
     </section>
 
     <section class="tour-showcase" aria-label="AmiLuna gallery walkthrough">
         <div class="tour-stage">
-            <canvas id="gallery-tour-canvas" aria-label="Animated walkthrough of the AmiLuna gallery room"></canvas>
-            <div class="tour-overlay">
-                <p class="tour-kicker">Now Viewing</p>
-                <h2 id="tour-step-title">Entrance</h2>
-                <p id="tour-step-caption">Beginning at the entrance before drifting toward the left wall collection.</p>
+            <!-- VIEW 1: 3D Canvas Walkthrough -->
+            <div id="view-3d-gallery" class="view-content active" style="width: 100%; height: 100%; position: relative;">
+                
+                <canvas id="gallery-tour-canvas" style="width: 100%; height: 100%; display: block; border-radius: 24px;"></canvas>
+
+                <div class="tour-overlay">
+                    <h2 id="tour-step-title">Entrance</h2>
+                </div>
+                <div class="tour-controls">
+                    <button type="button" id="tour-toggle">Pause</button>
+                    <button type="button" id="tour-restart">Restart</button>
+                </div>
             </div>
-            <div class="tour-controls">
-                <button type="button" id="tour-toggle">Pause</button>
-                <button type="button" id="tour-restart">Restart</button>
+
+            <!-- VIEW 2: AI Interior Setting Mode -->
+            <div id="view-ai-design" class="view-content" style="display: none; width: 100%; height: 100%; padding: 3rem; box-sizing: border-box; background: rgba(18, 18, 18, 0.95); justify-content: center; align-items: center; flex-direction: column;">
+                <div style="max-width: 500px; width: 100%;">
+                    <p class="tour-kicker">AI Powered</p>
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #fff; margin-bottom: 1rem;">Visualize In Your Room</h2>
+                    <p style="color: #a0a0a0; font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.6;">Pick an artwork and describe the setting where it will hang to see Gemini dynamically set up the 3D room's mood and lighting.</p>
+
+                    <form id="ai-generator-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        
+                        <!-- Step 1: Canvas Selection (Populated dynamically by gallery.js) -->
+                        <div>
+                            <label for="ai-artwork" style="font-size: 0.85rem; color: #ccc; display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Select Artwork</label>
+                            <select id="ai-artwork" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 0.95rem;">
+                                <option value="all" style="background: #111;">Loading artworks...</option>
+                            </select>
+                        </div>
+
+                        <!-- Step 2: Custom Setting Input -->
+                        <div>
+                            <label for="ai-prompt" style="font-size: 0.85rem; color: #ccc; display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Where should it be displayed?</label>
+                            <input type="text" id="ai-prompt" placeholder="e.g. In a baby's nursery, a dim cozy coffee shop, a luxury penthouse..." style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" required />
+                        </div>
+
+                        <button type="submit" id="ai-generate-btn" style="padding: 1rem; background: #c5a059; color: #000; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; transition: background 0.2s;">
+                            Generate & Visualize
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
+        <!-- RIGHT SIDEBAR: SELECTOR MODES -->
         <aside class="tour-panel">
-            <p class="tour-panel-label">Camera path</p>
-            <h3>Scene order</h3>
-            <div class="tour-outline" id="tour-outline"></div>
+            <p class="tour-panel-label">Views & Experiences</p>
+            <h3>Select Mode</h3>
+            
+            <div class="tour-outline">
+                <div class="tour-outline-step active" id="mode-3d-btn" style="cursor: pointer;">
+                    <p class="step-num">01</p>
+                    <div>
+                        <h4>3D Gallery View</h4>
+                        <p>Cinematic walkthrough across the room and featured collection.</p>
+                    </div>
+                </div>
+
+                <div class="tour-outline-step" id="mode-ai-btn" style="cursor: pointer; margin-top: 1rem;">
+                    <p class="step-num">02</p>
+                    <div>
+                        <h4>AI Room Visualizer</h4>
+                        <p>Place chosen artwork in custom real-world settings and environments.</p>
+                    </div>
+                </div>
+            </div>
         </aside>
     </section>
 </main>
 
 <script type="module" src="./gallery-tour.js"></script>
+<script type="module" src="./gallery.js"></script>
 <script type="module" src="./commerce-ui.js"></script>
 </body>
 </html>
