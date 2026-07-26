@@ -276,11 +276,6 @@ body::before {
     transform: rotateY(180deg);
 }
 
-.product-card.live-product:hover .card-3d,
-.product-card.live-product.flipped .card-3d {
-    transform: none;
-}
-
 .face {
     position: absolute;
     width: 100%;
@@ -300,15 +295,6 @@ body::before {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-.product-card.live-product .card-3d {
-    cursor: default;
-}
-
-.product-card.live-product .face {
-    position: relative;
-    backface-visibility: visible;
 }
 
 .product-image-fallback {

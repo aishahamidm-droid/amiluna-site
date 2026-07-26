@@ -2,7 +2,6 @@ import {
     fetchProducts as fetchStorefrontProducts,
     formatPrice,
     getLowestPrice,
-    getPrimaryImage,
     normalizeText
 } from "./storefront-api.js";
 import { buildPublicAssetUrl } from "./site-runtime.js";
@@ -30,6 +29,30 @@ const LOCAL_ARTWORK_LOOKUP = [
     { artId: 22, title: "Elegant White Calla", aliases: ["elegant white calla lily canvas wall art minimalist floral home decor", "elegant white calla lily canvas wall art – minimalist floral home decor"] },
     { artId: 23, title: "Lunara Bloom", aliases: ["lunara bloom modern abstract botanical canvas wall art", "lunara bloom – modern abstract botanical canvas wall art"] }
 ];
+
+const LOCAL_ARTWORK_BY_PRODUCT_ID = Object.freeze({
+    "69b3dd3de45532ea5106081a": 7,
+    "69b3adfc15a5aee0e1090734": 3,
+    "69a2a3267fc2996b8d0a5f16": 9,
+    "69a2750b0a8a4d5b290e1481": 5,
+    "699211e4bca977ae630bc10b": 12,
+    "699206a4363a97abcf0ee359": 19,
+    "699191bb064523edc10c3a24": 15,
+    "69906af880720a653b048b73": 8,
+    "6990642c5f277c55ae0b2106": 21,
+    "69905c2cbca977ae630b7132": 14,
+    "699052e7a0b737bc680266e1": 23,
+    "69904f5990577c34b00473d8": 2,
+    "699023d490577c34b0046c04": 6,
+    "69901c0aa0b737bc68025d4f": 13,
+    "699017e5bca977ae630b651a": 22,
+    "69900b6fea7b7f223102c2f9": 11,
+    "69900326bfa0b2594a0819c1": 20,
+    "698f42205d1aa081770d9d1e": 1,
+    "698f0aaeee46427fa70ca5e1": 4,
+    "698ec614e6f166ad24049c05": 17,
+    "698e8dcf8db76bef7503f9da": 18
+});
 
 const collections = {
     signatures: {
@@ -72,37 +95,14 @@ function resolveLocalArtwork(product) {
     }) || null;
 }
 
-function getRoomPreviewImage(product, primaryImage) {
-    const images = Array.isArray(product?.images) ? product.images : [];
-    const contextImage = images.find((image) => /camera_label=context/i.test(image?.src || ""));
-
-    return (
-        contextImage?.src ||
-        images.find((image) => image?.src && image.src !== primaryImage && !image.is_default)?.src ||
-        primaryImage ||
-        ""
-    );
-}
-
 function getCardArtwork(product) {
-    const artwork = resolveLocalArtwork(product);
-    const productPrimaryImage = getPrimaryImage(product);
-    const productRoomPreview = getRoomPreviewImage(product, productPrimaryImage);
-
-    if (!artwork) {
-        return {
-            image: productPrimaryImage,
-            hoverImage: productRoomPreview,
-            fallbackHoverImage: productPrimaryImage,
-            title: product.title
-        };
-    }
+    const artId = LOCAL_ARTWORK_BY_PRODUCT_ID[product?.id];
+    if (!artId) return null;
 
     return {
-        image: buildPublicAssetUrl(`artworks/art${artwork.artId}.jpg`),
-        hoverImage: buildPublicAssetUrl(`artworks/art${artwork.artId}Pic1.png`),
-        fallbackHoverImage: productRoomPreview,
-        title: artwork.title
+        image: buildPublicAssetUrl(`artworks/art${artId}.jpg`),
+        roomImage: buildPublicAssetUrl(`artworks/art${artId}Pic1.png`),
+        title: product.title
     };
 }
 
@@ -157,15 +157,19 @@ function renderProducts(type, products) {
 
     items.forEach((product) => {
         const artwork = getCardArtwork(product);
+        if (!artwork) return;
         const price = getLowestPrice(product);
 
         inventory.insertAdjacentHTML(
             "beforeend",
             `
-                <article class="product-card live-product">
-                    <div class="card-3d">
+                <article class="product-card">
+                    <div class="card-3d" tabindex="0" role="button" aria-pressed="false" aria-label="Show room preview for ${artwork.title}">
                         <div class="face art-face">
-                            ${artwork.image ? `<img src="${artwork.image}" data-primary-image="${artwork.image}" data-hover-image="${artwork.hoverImage}" data-fallback-hover-image="${artwork.fallbackHoverImage || artwork.image}" alt="${artwork.title}">` : `<div class="product-image-fallback">Artwork preview coming soon</div>`}
+                            <img src="${artwork.image}" alt="${artwork.title}" loading="lazy">
+                        </div>
+                        <div class="face room-face">
+                            <img src="${artwork.roomImage}" alt="${artwork.title} displayed in a room" loading="lazy">
                         </div>
                     </div>
                     <div class="product-info">
@@ -180,31 +184,18 @@ function renderProducts(type, products) {
         );
     });
 
-    inventory.querySelectorAll(".art-face img[data-hover-image]").forEach((image) => {
-        const primaryImage = image.dataset.primaryImage || image.src;
-        const hoverImage = image.dataset.hoverImage;
-        const fallbackHoverImage = image.dataset.fallbackHoverImage || primaryImage;
-
-        if (!hoverImage) {
-            return;
-        }
-
-        const showHoverImage = () => {
-            image.src = hoverImage;
+    inventory.querySelectorAll(".card-3d").forEach((card) => {
+        const productCard = card.closest(".product-card");
+        const togglePreview = () => {
+            const isFlipped = productCard.classList.toggle("flipped");
+            card.setAttribute("aria-pressed", String(isFlipped));
         };
 
-        const showPrimaryImage = () => {
-            image.src = primaryImage;
-        };
-
-        image.closest(".product-card")?.addEventListener("mouseenter", showHoverImage);
-        image.closest(".product-card")?.addEventListener("mouseleave", showPrimaryImage);
-        image.closest(".product-card")?.addEventListener("focusin", showHoverImage);
-        image.closest(".product-card")?.addEventListener("focusout", showPrimaryImage);
-
-        image.addEventListener("error", () => {
-            if (image.src !== fallbackHoverImage) {
-                image.src = fallbackHoverImage;
+        card.addEventListener("click", togglePreview);
+        card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                togglePreview();
             }
         });
     });
