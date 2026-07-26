@@ -72,13 +72,28 @@ function resolveLocalArtwork(product) {
     }) || null;
 }
 
+function getRoomPreviewImage(product, primaryImage) {
+    const images = Array.isArray(product?.images) ? product.images : [];
+    const contextImage = images.find((image) => /camera_label=context/i.test(image?.src || ""));
+
+    return (
+        contextImage?.src ||
+        images.find((image) => image?.src && image.src !== primaryImage && !image.is_default)?.src ||
+        primaryImage ||
+        ""
+    );
+}
+
 function getCardArtwork(product) {
     const artwork = resolveLocalArtwork(product);
+    const productPrimaryImage = getPrimaryImage(product);
+    const productRoomPreview = getRoomPreviewImage(product, productPrimaryImage);
 
     if (!artwork) {
         return {
-            image: getPrimaryImage(product),
-            hoverImage: "",
+            image: productPrimaryImage,
+            hoverImage: productRoomPreview,
+            fallbackHoverImage: productPrimaryImage,
             title: product.title
         };
     }
@@ -86,6 +101,7 @@ function getCardArtwork(product) {
     return {
         image: buildPublicAssetUrl(`artworks/art${artwork.artId}.jpg`),
         hoverImage: buildPublicAssetUrl(`artworks/art${artwork.artId}Pic1.png`),
+        fallbackHoverImage: productRoomPreview,
         title: artwork.title
     };
 }
@@ -149,7 +165,7 @@ function renderProducts(type, products) {
                 <article class="product-card live-product">
                     <div class="card-3d">
                         <div class="face art-face">
-                            ${artwork.image ? `<img src="${artwork.image}" data-primary-image="${artwork.image}" data-hover-image="${artwork.hoverImage}" alt="${artwork.title}">` : `<div class="product-image-fallback">Artwork preview coming soon</div>`}
+                            ${artwork.image ? `<img src="${artwork.image}" data-primary-image="${artwork.image}" data-hover-image="${artwork.hoverImage}" data-fallback-hover-image="${artwork.fallbackHoverImage || artwork.image}" alt="${artwork.title}">` : `<div class="product-image-fallback">Artwork preview coming soon</div>`}
                         </div>
                     </div>
                     <div class="product-info">
@@ -167,6 +183,7 @@ function renderProducts(type, products) {
     inventory.querySelectorAll(".art-face img[data-hover-image]").forEach((image) => {
         const primaryImage = image.dataset.primaryImage || image.src;
         const hoverImage = image.dataset.hoverImage;
+        const fallbackHoverImage = image.dataset.fallbackHoverImage || primaryImage;
 
         if (!hoverImage) {
             return;
@@ -184,6 +201,12 @@ function renderProducts(type, products) {
         image.closest(".product-card")?.addEventListener("mouseleave", showPrimaryImage);
         image.closest(".product-card")?.addEventListener("focusin", showHoverImage);
         image.closest(".product-card")?.addEventListener("focusout", showPrimaryImage);
+
+        image.addEventListener("error", () => {
+            if (image.src !== fallbackHoverImage) {
+                image.src = fallbackHoverImage;
+            }
+        });
     });
 }
 
