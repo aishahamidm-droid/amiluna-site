@@ -1,13 +1,28 @@
 import { buildFunctionUrl, buildPublicAssetUrl } from "./site-runtime.js";
 
 const artworks = [
-  { id: "AAA7", title: "AmiLuna Botanical I", src: "artworks/AAA7.jpg" },
-  { id: "AAA4", title: "AmiLuna Botanical II", src: "artworks/AAA4.jpg" },
-  { id: "AAA6", title: "AmiLuna Botanical III", src: "artworks/AAA6.jpg" },
-  { id: "AAA3", title: "AmiLuna Botanical IV", src: "artworks/AAA3.jpg" },
-  { id: "AAA1", title: "AmiLuna Botanical V", src: "artworks/AAA1.jpg" },
-  { id: "AAA5", title: "AmiLuna Botanical VI", src: "artworks/AAA5.jpg" },
-  { id: "AAA2", title: "AmiLuna Centerpiece", src: "artworks/AAA2.jpg" }
+  { id: "art1", title: "Vibrant Multicolor Calla", src: "artworks/art1.jpg" },
+  { id: "art2", title: "Solara Verde", src: "artworks/art2.jpg" },
+  { id: "art3", title: "Moonlit Calla", src: "artworks/art3.jpg" },
+  { id: "art4", title: "TerraMuse", src: "artworks/art4.jpg" },
+  { id: "art5", title: "Midnight Reverie", src: "artworks/art5.jpg" },
+  { id: "art6", title: "Eternal Bloom", src: "artworks/art6.jpg" },
+  { id: "art7", title: "Velora Flora", src: "artworks/art7.jpg" },
+  { id: "art8", title: "Forever Yours - Romantic Red Rose", src: "artworks/art8.jpg" },
+  { id: "art9", title: "Celora Poise", src: "artworks/art9.jpg" },
+  { id: "art11", title: "Soft Pink Calla", src: "artworks/art11.jpg" },
+  { id: "art12", title: "Sage Halo", src: "artworks/art12.jpg" },
+  { id: "art13", title: "Classic White Calla", src: "artworks/art13.jpg" },
+  { id: "art14", title: "Monvera Noir", src: "artworks/art14.jpg" },
+  { id: "art15", title: "Blush Dahlia", src: "artworks/art15.jpg" },
+  { id: "art17", title: "Aurora Petalis", src: "artworks/art17.jpg" },
+  { id: "art18", title: "Pure Grace Calla", src: "artworks/art18.jpg" },
+  { id: "art19", title: "Blush Whisper", src: "artworks/art19.jpg" },
+  { id: "art20", title: "Soft Petals Calla", src: "artworks/art20.jpg" },
+  { id: "art21", title: "Emberleaf Harmony", src: "artworks/art21.jpg" },
+  { id: "art22", title: "Elegant White Calla", src: "artworks/art22.jpg" },
+  { id: "art23", title: "Lunara Bloom", src: "artworks/art23.jpg" },
+  { id: "art24", title: "Blush Dahlia (Variation)", src: "artworks/art24.jpg" }
 ];
 
 const form = document.getElementById("ai-generator-form");
@@ -46,9 +61,13 @@ async function loadArtworkImage(artwork) {
 
 function populateArtworkChoices() {
   if (!artworkSelect) return;
-  artworkSelect.innerHTML = artworks
-    .map((artwork) => `<option value="${artwork.id}">${artwork.title}</option>`)
-    .join("");
+  artworkSelect.replaceChildren();
+  artworks.forEach((artwork) => {
+    const option = new Option(artwork.title, artwork.id);
+    option.style.backgroundColor = "#f8f5ee";
+    option.style.color = "#171914";
+    artworkSelect.add(option);
+  });
 }
 
 populateArtworkChoices();
