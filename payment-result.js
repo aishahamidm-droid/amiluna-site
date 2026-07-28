@@ -1,6 +1,6 @@
 import { clearCart } from "./cart-store.js";
 import { formatPrice } from "./storefront-api.js";
-import { buildFunctionUrl } from "./site-runtime.js";
+import { buildPaymentApiUrl } from "./site-runtime.js";
 import {
   clearPendingPayment,
   getPendingPayment,
@@ -8,8 +8,8 @@ import {
   saveVerifiedPayment
 } from "./payment-store.js";
 
-const PAYSTACK_VERIFY_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-verify");
-const PAYPAL_CAPTURE_ENDPOINT = buildFunctionUrl("/.netlify/functions/paypal-capture-order");
+const PAYSTACK_VERIFY_ENDPOINT = buildPaymentApiUrl("/api/paystack-verify");
+const PAYPAL_CAPTURE_ENDPOINT = buildPaymentApiUrl("/api/paypal-capture-order");
 
 const titleEl = document.getElementById("payment-title");
 const messageEl = document.getElementById("payment-message");

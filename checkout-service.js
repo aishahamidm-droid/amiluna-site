@@ -1,10 +1,10 @@
-import { buildFunctionUrl } from "./site-runtime.js";
+import { buildPaymentApiUrl } from "./site-runtime.js";
 
-const CHECKOUT_SUMMARY_ENDPOINT = buildFunctionUrl("/.netlify/functions/checkout-summary");
-const PAYSTACK_INITIALIZE_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-initialize");
-const PAYSTACK_VERIFY_ENDPOINT = buildFunctionUrl("/.netlify/functions/paystack-verify");
-const PAYPAL_CREATE_ORDER_ENDPOINT = buildFunctionUrl("/.netlify/functions/paypal-create-order");
-const PAYPAL_CAPTURE_ORDER_ENDPOINT = buildFunctionUrl("/.netlify/functions/paypal-capture-order");
+const CHECKOUT_SUMMARY_ENDPOINT = buildPaymentApiUrl("/api/checkout-summary");
+const PAYSTACK_INITIALIZE_ENDPOINT = buildPaymentApiUrl("/api/paystack-initialize");
+const PAYSTACK_VERIFY_ENDPOINT = buildPaymentApiUrl("/api/paystack-verify");
+const PAYPAL_CREATE_ORDER_ENDPOINT = buildPaymentApiUrl("/api/paypal-create-order");
+const PAYPAL_CAPTURE_ORDER_ENDPOINT = buildPaymentApiUrl("/api/paypal-capture-order");
 
 export async function fetchCheckoutSummary(cartItems, customer) {
   const response = await fetch(CHECKOUT_SUMMARY_ENDPOINT, {

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "amiluna-site",
+  "main": "worker.js",
+  "compatibility_date": "2026-07-28",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  }
+}
