@@ -42,6 +42,13 @@ function setStatus(message, type = "default") {
   statusEl.textContent = message;
 }
 
+function formatPaymentAmount(cents, currency) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency
+  }).format(cents / 100);
+}
+
 function renderVerifiedPayment(payment) {
   titleEl.textContent = "Payment confirmed";
   messageEl.textContent = "Your payment has been verified on the server. Your order is being prepared for fulfillment.";
@@ -59,7 +66,8 @@ function renderVerifiedPayment(payment) {
         <div class="summary-row"><span>Customer email</span><strong>${payment.email}</strong></div>
         <div class="summary-row"><span>Subtotal</span><strong>${formatPrice(payment.subtotalCents)}</strong></div>
         <div class="summary-row"><span>${payment.shipping.label}</span><strong>${formatPrice(payment.shipping.amountCents)}</strong></div>
-        <div class="summary-row"><span>Total paid</span><strong>${formatPrice(payment.totalCents)}</strong></div>
+        <div class="summary-row"><span>Order total</span><strong>${formatPrice(payment.totalCents)}</strong></div>
+        ${payment.currency !== payment.orderCurrency ? `<div class="summary-row"><span>Charged by ${providerLabel}</span><strong>${formatPaymentAmount(payment.paidAmountCents, payment.currency)}</strong></div>` : ""}
       </div>
     </section>
     <section class="summary-panel">
