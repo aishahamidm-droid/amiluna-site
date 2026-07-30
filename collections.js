@@ -77,7 +77,17 @@ const collections = {
     },
     calla: {
         title: "Calla Lily",
-        keywords: ["calla", "lily"]
+        productIds: [
+            "6a6860240eaa010d9a01c75c",
+            "69b3adfc15a5aee0e1090734",
+            "699023d490577c34b0046c04",
+            "699017e5bca977ae630b651a",
+            "69901c0aa0b737bc68025d4f",
+            "69900b6fea7b7f223102c2f9",
+            "69900326bfa0b2594a0819c1",
+            "698f42205d1aa081770d9d1e",
+            "698e8dcf8db76bef7503f9da"
+        ]
     },
     aureate: {
         title: "The Aureate Edition",
