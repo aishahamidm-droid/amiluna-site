@@ -245,6 +245,10 @@ body::before {
     color: rgba(247, 240, 229, 0.74);
 }
 
+.summary-loading[hidden] {
+    display: none;
+}
+
 .summary-spinner {
     width: 34px;
     height: 34px;
