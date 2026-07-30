@@ -62,7 +62,16 @@ const collections = {
     },
     botanical: {
         title: "Modern Botanical",
-        keywords: ["botanical", "leaf", "nature", "flora"]
+        productIds: [
+            "69b3dd3de45532ea5106081a",
+            "69a2a3267fc2996b8d0a5f16",
+            "6990642c5f277c55ae0b2106",
+            "69905c2cbca977ae630b7132",
+            "699052e7a0b737bc680266e1",
+            "69904f5990577c34b00473d8",
+            "698f0aaeee46427fa70ca5e1",
+            "698ec614e6f166ad24049c05"
+        ]
     },
     calla: {
         title: "Calla Lily",
@@ -128,7 +137,8 @@ function getCollectionProducts(type, products) {
     }
 
     if (config.productIds?.length) {
-        return products.filter((product) => config.productIds.includes(String(product.id)));
+        const productsById = new Map(products.map((product) => [String(product.id), product]));
+        return config.productIds.map((productId) => productsById.get(productId)).filter(Boolean);
     }
 
     const filtered = products.filter((product) => {
@@ -244,6 +254,27 @@ async function fetchProductsFromApi(forceRefresh = false) {
     return fetchStorefrontProducts({ forceRefresh });
 }
 
+function updateCollectionCounts(products) {
+    document.querySelectorAll(".item[data-col]").forEach((item) => {
+        const count = getCollectionProducts(item.dataset.col, products)
+            .filter((product) => Boolean(getCardArtwork(product)))
+            .length;
+        const countLabel = item.querySelector(".count");
+
+        if (countLabel) {
+            countLabel.textContent = `${count} ${count === 1 ? "piece" : "pieces"}`;
+        }
+    });
+}
+
+async function refreshCollectionCounts() {
+    try {
+        updateCollectionCounts(await fetchProducts());
+    } catch {
+        // Keep the server-rendered counts when the live catalog is temporarily unavailable.
+    }
+}
+
 async function loadCollection(type, { forceRefresh = false } = {}) {
     activeCollectionType = type;
     stageTitle.innerText = collections[type]?.title || "Collection";
@@ -290,3 +321,5 @@ backButton.onclick = () => {
     landing.style.display = "flex";
     setTimeout(() => (landing.style.opacity = "1"), 50);
 };
+
+void refreshCollectionCounts();
