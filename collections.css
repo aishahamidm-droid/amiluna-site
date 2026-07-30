@@ -101,7 +101,7 @@ body::before {
 .collections-intro h1 {
     margin: 0;
     font-family: 'Playfair Display', serif;
-    font-size: clamp(4rem, 6.6vw, 6.7rem);
+    font-size: clamp(4rem, 4.6vw, 5.8rem);
     line-height: 0.9;
     letter-spacing: -0.02em;
     overflow-wrap: normal;
