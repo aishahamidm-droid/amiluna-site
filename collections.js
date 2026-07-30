@@ -70,7 +70,9 @@ const collections = {
             "699052e7a0b737bc680266e1",
             "69904f5990577c34b00473d8",
             "698f0aaeee46427fa70ca5e1",
-            "698ec614e6f166ad24049c05"
+            "698ec614e6f166ad24049c05",
+            "699211e4bca977ae630bc10b",
+            "699206a4363a97abcf0ee359"
         ]
     },
     calla: {
