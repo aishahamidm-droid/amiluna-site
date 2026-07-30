@@ -37,6 +37,13 @@ function checkoutRequest(path) {
   });
 }
 
+function catalogRequest() {
+  return new Request("https://amilunacanvasart.com/api/catalog", {
+    method: "GET",
+    headers: { Accept: "application/json" }
+  });
+}
+
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -47,6 +54,38 @@ function jsonResponse(body, status = 200) {
 async function readJson(response) {
   return { status: response.status, body: await response.json() };
 }
+
+test("catalog reads Printify bindings and returns only storefront-safe fields", async () => {
+  const originalFetch = globalThis.fetch;
+  let printifyRequest;
+  globalThis.fetch = async (request, options) => {
+    printifyRequest = { url: String(request), options };
+    return jsonResponse({
+      data: [{
+        ...printifyProduct,
+        private_field: "must-not-leak",
+        options: [{ name: "Sizes", type: "size", values: [{ id: 1, title: "16 x 16", private_field: "hidden" }] }],
+        variants: [{ ...printifyProduct.variants[0], sku: "safe-sku", private_field: "hidden" }]
+      }]
+    });
+  };
+
+  try {
+    const result = await readJson(await worker.fetch(catalogRequest(), baseEnv));
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.ok, true);
+    assert.equal(result.body.count, 1);
+    assert.equal(result.body.products[0].title, "Test Canvas");
+    assert.equal(result.body.products[0].variants[0].sku, "safe-sku");
+    assert.equal("private_field" in result.body.products[0], false);
+    assert.equal("private_field" in result.body.products[0].variants[0], false);
+    assert.equal(printifyRequest.url, "https://api.printify.com/v1/shops/shop-1/products.json");
+    assert.equal(printifyRequest.options.headers.Authorization, "Bearer printify-token");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test("checkout summary reads Printify bindings and calculates totals on the server", async () => {
   const originalFetch = globalThis.fetch;

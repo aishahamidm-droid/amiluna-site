@@ -2,6 +2,7 @@ import {
     fetchProducts as fetchStorefrontProducts,
     formatPrice,
     getLowestPrice,
+    getPrimaryImage,
     normalizeText
 } from "./storefront-api.js";
 import { buildPublicAssetUrl } from "./site-runtime.js";
@@ -96,8 +97,21 @@ function resolveLocalArtwork(product) {
 }
 
 function getCardArtwork(product) {
-    const artId = LOCAL_ARTWORK_BY_PRODUCT_ID[product?.id];
-    if (!artId) return null;
+    const artId = LOCAL_ARTWORK_BY_PRODUCT_ID[product?.id] || resolveLocalArtwork(product)?.artId;
+
+    if (!artId) {
+        const image = getPrimaryImage(product);
+        if (!image) return null;
+
+        const roomImage = (Array.isArray(product?.images) ? product.images : [])
+            .find((candidate) => candidate.src && candidate.src !== image)?.src || image;
+
+        return {
+            image,
+            roomImage,
+            title: String(product?.title || "AmiLuna artwork").trim()
+        };
+    }
 
     return {
         image: buildPublicAssetUrl(`artworks/art${artId}.jpg`),

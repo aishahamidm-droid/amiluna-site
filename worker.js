@@ -19,7 +19,7 @@ const PAGE_ALIASES = {
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type, Accept",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Vary": "Origin"
 };
 
@@ -63,6 +63,17 @@ async function withCors(responsePromise) {
 }
 
 async function handleApiRequest(request, env, url) {
+  if (url.pathname === "/api/catalog") {
+    if (request.method !== "GET") throw new HttpError(405, "Method not allowed.");
+    const products = await fetchPrintifyProducts(env);
+    const publicProducts = products.filter((product) => product.visible !== false);
+    return json(
+      { ok: true, count: publicProducts.length, products: publicProducts.map(sanitizeProduct) },
+      200,
+      { "Cache-Control": "public, max-age=60" }
+    );
+  }
+
   if (request.method !== "POST") throw new HttpError(405, "Method not allowed.");
   const payload = await readJson(request);
 
@@ -163,6 +174,43 @@ async function fetchPrintifyProducts(env) {
   if (!response.ok) throw new HttpError(502, "We could not verify your cart with the store catalog.");
   const data = await response.json();
   return Array.isArray(data?.data) ? data.data : [];
+}
+
+function sanitizeProduct(product) {
+  return {
+    id: product.id,
+    title: product.title,
+    description: product.description,
+    tags: Array.isArray(product.tags) ? product.tags : [],
+    visible: product.visible,
+    is_locked: product.is_locked,
+    blueprint_id: product.blueprint_id,
+    print_provider_id: product.print_provider_id,
+    created_at: product.created_at,
+    updated_at: product.updated_at,
+    options: (Array.isArray(product.options) ? product.options : []).map((option) => ({
+      name: option.name,
+      type: option.type,
+      values: (Array.isArray(option.values) ? option.values : []).map((value) => ({
+        id: value.id,
+        title: value.title
+      }))
+    })),
+    variants: (Array.isArray(product.variants) ? product.variants : []).map((variant) => ({
+      id: variant.id,
+      title: variant.title,
+      sku: variant.sku,
+      price: variant.price,
+      is_enabled: variant.is_enabled,
+      is_available: variant.is_available,
+      options: Array.isArray(variant.options) ? variant.options : []
+    })),
+    images: (Array.isArray(product.images) ? product.images : []).map((image) => ({
+      src: image.src,
+      variant_ids: Array.isArray(image.variant_ids) ? image.variant_ids : [],
+      is_default: Boolean(image.is_default)
+    }))
+  };
 }
 
 function primaryImage(product) {

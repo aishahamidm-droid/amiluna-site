@@ -1,7 +1,7 @@
 import { STORE_CURRENCY, STORE_LOCALE } from "./store-config.js";
-import { buildFunctionUrl } from "./site-runtime.js";
+import { buildPaymentApiUrl } from "./site-runtime.js";
 
-const PRODUCTS_ENDPOINT = buildFunctionUrl("/.netlify/functions/printify-products");
+const PRODUCTS_ENDPOINT = buildPaymentApiUrl("/api/catalog");
 const PRODUCTS_FALLBACK_ENDPOINT = "./data/products.json";
 let productsPromise = null;
 
