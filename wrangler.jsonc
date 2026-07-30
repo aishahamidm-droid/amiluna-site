@@ -3,6 +3,7 @@
   "name": "amiluna-site",
   "main": "worker.js",
   "compatibility_date": "2026-07-28",
+  "keep_vars": true,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS"
