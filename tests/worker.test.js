@@ -82,8 +82,7 @@ test("Paystack initialization reads its secret and callback bindings", async () 
     const env = {
       ...baseEnv,
       PAYSTACK_SECRET_KEY: "paystack-secret",
-      PAYSTACK_CALLBACK_URL: "https://amilunacanvasart.com/payment-result.html",
-      PAYSTACK_USD_TO_KES_RATE: "130"
+      PAYSTACK_CALLBACK_URL: "https://amilunacanvasart.com/payment-result.html"
     };
     const result = await readJson(await worker.fetch(checkoutRequest("/api/paystack-initialize"), env));
     const paymentRequest = requests[1];
@@ -93,75 +92,8 @@ test("Paystack initialization reads its secret and callback bindings", async () 
     assert.equal(result.body.ok, true);
     assert.ok(result.body.sessionToken);
     assert.equal(paymentRequest.options.headers.Authorization, "Bearer paystack-secret");
-    assert.equal(paymentBody.amount, "724100");
-    assert.equal(paymentBody.currency, "KES");
+    assert.equal(paymentBody.amount, "5570");
     assert.equal(paymentBody.callback_url, env.PAYSTACK_CALLBACK_URL);
-    assert.deepEqual(result.body.charge, { currency: "KES", amountCents: 724100, usdToKesRate: 130 });
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("Paystack verification matches the signed KES charge", async () => {
-  const originalFetch = globalThis.fetch;
-  const requests = [];
-  globalThis.fetch = async (request, options = {}) => {
-    requests.push({ url: String(request), options });
-    if (String(request).startsWith("https://api.printify.com/")) return jsonResponse({ data: [printifyProduct] });
-    if (String(request).endsWith("/transaction/initialize")) {
-      return jsonResponse({ status: true, data: { authorization_url: "https://checkout.paystack.com/test", access_code: "access-code" } });
-    }
-    const initialized = requests[1];
-    const initializedBody = JSON.parse(initialized.options.body);
-    return jsonResponse({
-      status: true,
-      data: {
-        status: "success",
-        amount: Number(initializedBody.amount),
-        currency: initializedBody.currency,
-        metadata: initializedBody.metadata,
-        customer: { email: customer.email },
-        paid_at: "2026-07-30T18:00:00.000Z"
-      }
-    });
-  };
-
-  try {
-    const env = {
-      ...baseEnv,
-      PAYSTACK_SECRET_KEY: "paystack-secret",
-      PAYSTACK_CALLBACK_URL: "https://amilunacanvasart.com/payment-result.html",
-      PAYSTACK_USD_TO_KES_RATE: "130"
-    };
-    const initialized = await readJson(await worker.fetch(checkoutRequest("/api/paystack-initialize"), env));
-    const verifiedRequest = new Request("https://amilunacanvasart.com/api/paystack-verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reference: initialized.body.reference, sessionToken: initialized.body.sessionToken })
-    });
-    const verified = await readJson(await worker.fetch(verifiedRequest, env));
-
-    assert.equal(verified.status, 200);
-    assert.equal(verified.body.payment.currency, "KES");
-    assert.equal(verified.body.payment.paidAmountCents, 724100);
-    assert.equal(verified.body.payment.orderCurrency, "USD");
-    assert.equal(verified.body.payment.totalCents, 5570);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("Paystack initialization fails closed when the conversion rate is missing", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => jsonResponse({ data: [printifyProduct] });
-
-  try {
-    const result = await readJson(await worker.fetch(checkoutRequest("/api/paystack-initialize"), {
-      ...baseEnv,
-      PAYSTACK_SECRET_KEY: "paystack-secret"
-    }));
-    assert.equal(result.status, 503);
-    assert.equal(result.body.error, "Card currency conversion is not configured yet.");
   } finally {
     globalThis.fetch = originalFetch;
   }

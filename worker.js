@@ -3,7 +3,6 @@ const PAYSTACK_API_BASE = "https://api.paystack.co";
 const PAYPAL_SANDBOX_API_BASE = "https://api-m.sandbox.paypal.com";
 const PAYPAL_LIVE_API_BASE = "https://api-m.paypal.com";
 const STORE_CURRENCY = "USD";
-const PAYSTACK_CURRENCY = "KES";
 const CHECKOUT_SESSION_TTL_MS = 4 * 60 * 60 * 1000;
 
 const PAGE_ALIASES = {
@@ -236,18 +235,6 @@ function amount(cents) {
   return (cents / 100).toFixed(2);
 }
 
-function paystackCharge(summary, env) {
-  const usdToKesRate = Number(env.PAYSTACK_USD_TO_KES_RATE);
-  if (!Number.isFinite(usdToKesRate) || usdToKesRate <= 0) {
-    throw new HttpError(503, "Card currency conversion is not configured yet.");
-  }
-  return {
-    currency: PAYSTACK_CURRENCY,
-    amountCents: Math.round(summary.totalCents * usdToKesRate),
-    usdToKesRate
-  };
-}
-
 function apiError(response, fallback) {
   return response.text().then(() => new HttpError(502, fallback));
 }
@@ -255,7 +242,6 @@ function apiError(response, fallback) {
 async function initializePaystack(payload, env, requestUrl) {
   const context = await buildCheckoutContext(payload, env);
   if (!env.PAYSTACK_SECRET_KEY) throw new HttpError(503, "Card payment is not configured yet.");
-  const charge = paystackCharge(context.summary, env);
   const checkoutReference = createReference("AML");
   const reference = createReference("AMLPAY");
   const callbackUrl = env.PAYSTACK_CALLBACK_URL || new URL("/payment-result.html", requestUrl).href;
@@ -264,17 +250,11 @@ async function initializePaystack(payload, env, requestUrl) {
     headers: { Authorization: `Bearer ${env.PAYSTACK_SECRET_KEY}`, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
       email: context.customer.email,
-      amount: String(charge.amountCents),
-      currency: charge.currency,
+      amount: String(context.summary.totalCents),
+      currency: context.summary.currency,
       reference,
       callback_url: callbackUrl,
-      metadata: {
-        internal_checkout_reference: checkoutReference,
-        item_count: context.summary.itemCount,
-        order_currency: context.summary.currency,
-        order_total_cents: context.summary.totalCents,
-        usd_to_kes_rate: charge.usdToKesRate
-      }
+      metadata: { internal_checkout_reference: checkoutReference, item_count: context.summary.itemCount }
     })
   });
   if (!response.ok) throw await apiError(response, "We could not start the card payment. Please try again.");
@@ -286,8 +266,7 @@ async function initializePaystack(payload, env, requestUrl) {
     reference,
     authorizationUrl: data.data.authorization_url,
     accessCode: data.data.access_code || "",
-    charge,
-    sessionToken: await createCheckoutSession({ provider: "paystack", checkoutReference, reference, customer: context.customer, summary: context.summary, charge }, env)
+    sessionToken: await createCheckoutSession({ provider: "paystack", checkoutReference, reference, customer: context.customer, summary: context.summary }, env)
   };
 }
 
@@ -302,13 +281,13 @@ async function verifyPaystack(payload, env) {
   if (!response.ok) throw await apiError(response, "We could not verify the card payment. Please try again.");
   const data = await response.json();
   const transaction = data?.data;
-  if (!data?.status || transaction?.status !== "success" || Number(transaction.amount) !== session.charge?.amountCents || transaction.currency !== session.charge?.currency) {
+  if (!data?.status || transaction?.status !== "success" || Number(transaction.amount) !== session.summary.totalCents || transaction.currency !== session.summary.currency) {
     throw new HttpError(400, "The card payment has not completed yet.");
   }
   if (transaction.metadata?.internal_checkout_reference !== session.checkoutReference || transaction.customer?.email?.toLowerCase() !== session.customer.email.toLowerCase()) {
     throw new HttpError(400, "The payment details could not be verified.");
   }
-  return { ok: true, payment: completedPayment("paystack", reference, session, transaction.paid_at || transaction.transaction_date, session.charge) };
+  return { ok: true, payment: completedPayment("paystack", reference, session, transaction.paid_at || transaction.transaction_date) };
 }
 
 async function getPayPalAccessToken(env) {
@@ -404,15 +383,13 @@ async function capturePayPalOrder(payload, env) {
   return { ok: true, payment: completedPayment("paypal", capture.id || orderId, session, capture.create_time) };
 }
 
-function completedPayment(provider, reference, session, verifiedAt, charge = null) {
-  const paid = charge || { currency: session.summary.currency, amountCents: session.summary.totalCents };
+function completedPayment(provider, reference, session, verifiedAt) {
   return {
     provider,
     checkoutReference: session.checkoutReference,
     reference,
-    currency: paid.currency,
-    paidAmountCents: paid.amountCents,
-    orderCurrency: session.summary.currency,
+    currency: session.summary.currency,
+    paidAmountCents: session.summary.totalCents,
     email: session.customer.email,
     status: "verified",
     verifiedAt: verifiedAt || new Date().toISOString(),
