@@ -296,9 +296,19 @@ body::before {
 }
 
 .checkout-item .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+    align-items: baseline;
+    gap: 8px 24px;
+}
+
+.checkout-item .meta-row span,
+.checkout-item .meta-row strong {
+    white-space: nowrap;
+}
+
+.checkout-item .meta-row strong {
+    justify-self: end;
 }
 
 .checkout-summary {
@@ -434,5 +444,14 @@ body::before {
 
     .checkout-item {
         grid-template-columns: 1fr;
+    }
+
+    .checkout-item .meta-row {
+        grid-template-columns: minmax(0, 1fr) max-content;
+    }
+
+    .checkout-item .meta-row strong {
+        grid-column: 1 / -1;
+        justify-self: start;
     }
 }
