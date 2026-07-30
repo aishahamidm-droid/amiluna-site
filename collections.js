@@ -95,7 +95,10 @@ const collections = {
     },
     eternal: {
         title: "Eternal Affection",
-        keywords: ["romantic", "rose", "blush", "eternal", "affection", "love"]
+        productIds: [
+            "69906af880720a653b048b73",
+            "699191bb064523edc10c3a24"
+        ]
     }
 };
 
