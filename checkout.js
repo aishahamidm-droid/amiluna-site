@@ -205,7 +205,7 @@ function validateForm() {
   };
 }
 
-async function refreshSummary({ showSuccess = false } = {}) {
+async function refreshSummary({ showSuccess = false, requireAddress = false } = {}) {
   const items = getCartItems();
 
   if (!items.length) {
@@ -215,37 +215,41 @@ async function refreshSummary({ showSuccess = false } = {}) {
     return;
   }
 
-  const validation = validateForm();
-  if (!validation.valid) {
-    resetVerifiedSummary();
-    setFeedback(validation.message, "error");
-    return;
+  const customer = getCustomerFromForm();
+  if (requireAddress) {
+    const validation = validateForm();
+    if (!validation.valid) {
+      setFeedback(validation.message, "error");
+      return false;
+    }
   }
 
-  writeCheckoutDraft(validation.customer);
+  writeCheckoutDraft(customer);
   setSummaryLoading(true);
   setFeedback("");
   setPaymentFeedback("");
 
   try {
-    const summary = await prepareCheckoutSummary(items, validation.customer);
+    const summary = await prepareCheckoutSummary(items, customer);
     renderSummary(summary);
     setFeedback(
       showSuccess
-        ? "Your delivery details have been saved. This order summary is verified on the server and ready for payment integration in Phase 3."
+        ? "Your delivery details have been saved and the order total has been refreshed."
         : "",
       "success"
     );
+    return true;
   } catch (error) {
     resetVerifiedSummary();
     setFeedback(error.message || "Unable to refresh the checkout summary right now.", "error");
+    return false;
   } finally {
     setSummaryLoading(false);
   }
 }
 
 function bindCartActions() {
-  itemsContainer.addEventListener("click", async (event) => {
+  itemsContainer.addEventListener("click", (event) => {
     const actionButton = event.target.closest("button[data-action]");
     if (!actionButton) {
       return;
@@ -277,38 +281,19 @@ function bindCartActions() {
     if (actionButton.dataset.action === "remove") {
       removeCartItem(productId, variantId);
     }
-
-    const validation = validateForm();
-    if (validation.valid) {
-      await refreshSummary();
-    } else if (!getCartItems().length) {
-      resetVerifiedSummary();
-      renderEmptyCheckout();
-      setFeedback("Your cart is empty. Add a piece before continuing to checkout.", "error");
-    } else {
-      resetVerifiedSummary();
-      renderDraftCartItems(getCartItems());
-      setFeedback("Cart updated. Complete your delivery details to refresh the verified order total.", "default");
-    }
   });
 }
 
 function initDraftAutosave() {
   form.addEventListener("input", () => {
-    const hadVerifiedSummary = Boolean(verifiedSummary);
     writeCheckoutDraft(getCustomerFromForm());
-
-    if (hadVerifiedSummary) {
-      resetVerifiedSummary();
-      setPaymentFeedback("Refresh your verified totals after changing delivery details.", "default");
-    }
   });
 }
 
 function initForm() {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    await refreshSummary({ showSuccess: true });
+    await refreshSummary({ showSuccess: true, requireAddress: true });
   });
 
   refreshButton.addEventListener("click", async () => {
@@ -326,7 +311,6 @@ function initForm() {
 
     const validation = validateForm();
     if (!validation.valid) {
-      resetVerifiedSummary();
       setFeedback(validation.message, "error");
       setPaymentFeedback("Please complete your delivery details before paying.", "error");
       return;
@@ -334,12 +318,10 @@ function initForm() {
 
     writeCheckoutDraft(validation.customer);
 
-    if (!verifiedSummary) {
-      await refreshSummary();
-      if (!verifiedSummary) {
-        setPaymentFeedback("Please refresh your verified totals before continuing to PayPal.", "error");
-        return;
-      }
+    const summaryReady = await refreshSummary({ requireAddress: true });
+    if (!summaryReady) {
+      setPaymentFeedback("Please refresh your verified totals before continuing to PayPal.", "error");
+      return;
     }
 
     setPaymentLoading(true);
@@ -379,16 +361,10 @@ function initCheckout() {
     setFeedback("Your cart is empty. Add a piece before continuing to checkout.", "error");
   } else {
     renderDraftCartItems(items);
-    summaryContainer.innerHTML = `
-      <div class="summary-row"><span>Subtotal</span><strong>Ready to verify</strong></div>
-      <div class="summary-row"><span>Shipping</span><strong>Awaiting address</strong></div>
-      <div class="summary-row total-row"><span>Total</span><strong>Server calculated</strong></div>
-    `;
+    void refreshSummary();
   }
 
   onCartUpdated(() => {
-    const validation = validateForm();
-
     if (!getCartItems().length) {
       resetVerifiedSummary();
       renderEmptyCheckout();
@@ -396,14 +372,7 @@ function initCheckout() {
       return;
     }
 
-    if (validation.valid) {
-      void refreshSummary();
-      return;
-    }
-
-    resetVerifiedSummary();
-    renderDraftCartItems(getCartItems());
-    setFeedback("Cart updated. Complete your delivery details to refresh the verified order total.", "default");
+    void refreshSummary();
   });
 
   syncLoadingState();

@@ -327,31 +327,6 @@ body::before {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.summary-footer p {
-    margin: 0 0 16px;
-    color: rgba(247, 240, 229, 0.68);
-    line-height: 1.6;
-}
-
-.payment-method-card {
-    margin-bottom: 16px;
-    border: 1px solid rgba(240, 209, 138, 0.18);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 16px;
-}
-
-.payment-method-card h3 {
-    margin: 0 0 8px;
-    font-family: "Playfair Display", serif;
-    font-size: 1.4rem;
-}
-
-.payment-method-card p:last-child {
-    margin: 0;
-    color: rgba(247, 240, 229, 0.72);
-}
-
 .payment-btn {
     width: 100%;
 }

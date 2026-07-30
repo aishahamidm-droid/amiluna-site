@@ -108,6 +108,39 @@ test("checkout summary reads Printify bindings and calculates totals on the serv
   }
 });
 
+test("checkout summary calculates default totals before an address is entered", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => jsonResponse({ data: [printifyProduct] });
+
+  try {
+    const request = new Request("https://amilunacanvasart.com/api/checkout-summary", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cartItems })
+    });
+    const result = await readJson(await worker.fetch(request, baseEnv));
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.summary.subtotalCents, 5000);
+    assert.equal(result.body.summary.shipping.amountCents, 2150);
+    assert.equal(result.body.summary.totalCents, 7150);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("PayPal still requires a complete delivery address", async () => {
+  const request = new Request("https://amilunacanvasart.com/api/paypal-create-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cartItems })
+  });
+  const result = await readJson(await worker.fetch(request, baseEnv));
+
+  assert.equal(result.status, 400);
+  assert.equal(result.body.error, "Please enter your full name.");
+});
+
 test("Paystack initialization reads its secret and callback bindings", async () => {
   const originalFetch = globalThis.fetch;
   const requests = [];

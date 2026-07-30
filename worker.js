@@ -79,7 +79,7 @@ async function handleApiRequest(request, env, url) {
 
   switch (url.pathname) {
     case "/api/checkout-summary": {
-      const context = await buildCheckoutContext(payload, env);
+      const context = await buildCheckoutContext(payload, env, { requireCustomer: false });
       return json({ ok: true, summary: context.summary });
     }
     case "/api/paystack-initialize":
@@ -141,10 +141,12 @@ function normalizeCustomer(rawCustomer = {}) {
   };
 }
 
-function validateCheckoutPayload(payload) {
+function validateCheckoutPayload(payload, { requireCustomer = true } = {}) {
   const cartItems = normalizeCartItems(payload?.cartItems);
   const customer = normalizeCustomer(payload?.customer);
   if (!cartItems.length) throw new HttpError(400, "Your cart is empty.");
+
+  if (!requireCustomer) return { cartItems, customer };
 
   const fields = [
     ["fullName", "Please enter your full name."],
@@ -260,8 +262,8 @@ function calculateShipping({ itemCount, subtotalCents, customer }) {
   return { amountCents: base + Math.max(0, itemCount - 1) * perItem, currency: STORE_CURRENCY, label: "Estimated standard shipping", provider: "placeholder", serviceLevel: "standard" };
 }
 
-async function buildCheckoutContext(payload, env) {
-  const { cartItems, customer } = validateCheckoutPayload(payload);
+async function buildCheckoutContext(payload, env, validationOptions) {
+  const { cartItems, customer } = validateCheckoutPayload(payload, validationOptions);
   const products = await fetchPrintifyProducts(env);
   const items = verifiedItems(cartItems, buildProductLookup(products));
   const subtotalCents = items.reduce((total, item) => total + item.lineTotalCents, 0);
