@@ -71,7 +71,6 @@ const collections = {
             "69904f5990577c34b00473d8",
             "698f0aaeee46427fa70ca5e1",
             "698ec614e6f166ad24049c05",
-            "699211e4bca977ae630bc10b",
             "699206a4363a97abcf0ee359"
         ]
     },
@@ -91,7 +90,10 @@ const collections = {
     },
     aureate: {
         title: "The Aureate Edition",
-        productIds: ["69a2750b0a8a4d5b290e1481"]
+        productIds: [
+            "69a2750b0a8a4d5b290e1481",
+            "699211e4bca977ae630bc10b"
+        ]
     },
     eternal: {
         title: "Eternal Affection",
