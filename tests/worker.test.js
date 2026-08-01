@@ -14,14 +14,63 @@ const customer = {
   streetAddress: "Test address"
 };
 
-const cartItems = [{ productId: "product-1", variantId: "variant-1", quantity: 2 }];
+const cartItems = [{ productId: "product-1", variantId: "101", quantity: 2 }];
 
 const printifyProduct = {
   id: "product-1",
   title: "Test Canvas",
-  variants: [{ id: "variant-1", title: "16 x 16", price: 2500, is_enabled: true, is_available: true }],
+  blueprint_id: 99,
+  print_provider_id: 7,
+  variants: [{ id: 101, title: "16 x 16", price: 2500, is_enabled: true, is_available: true }],
   images: [{ src: "https://example.com/canvas.jpg", is_default: true }]
 };
+
+const printifyShipping = {
+  data: [
+    {
+      attributes: {
+        country: { code: "KE" },
+        variantId: 101,
+        shippingPlanId: "canvas-ke",
+        handlingTime: { from: 4, to: 8 },
+        shippingCost: {
+          firstItem: { amount: 570, currency: "USD" },
+          additionalItems: { amount: 120, currency: "USD" }
+        }
+      }
+    },
+    {
+      attributes: {
+        country: { code: "US" },
+        variantId: 101,
+        shippingPlanId: "canvas-us",
+        handlingTime: { from: 3, to: 6 },
+        shippingCost: {
+          firstItem: { amount: 1200, currency: "USD" },
+          additionalItems: { amount: 250, currency: "USD" }
+        }
+      }
+    },
+    {
+      attributes: {
+        country: { code: "REST_OF_THE_WORLD" },
+        variantId: 101,
+        shippingPlanId: "canvas-world",
+        handlingTime: { from: 6, to: 12 },
+        shippingCost: {
+          firstItem: { amount: 1800, currency: "USD" },
+          additionalItems: { amount: 350, currency: "USD" }
+        }
+      }
+    }
+  ]
+};
+
+function printifyResponse(request) {
+  return String(request).includes("/v2/catalog/")
+    ? jsonResponse(printifyShipping)
+    : jsonResponse({ data: [printifyProduct] });
+}
 
 const baseEnv = {
   PRINTIFY_API_TOKEN: "printify-token",
@@ -89,20 +138,23 @@ test("catalog reads Printify bindings and returns only storefront-safe fields", 
 
 test("checkout summary reads Printify bindings and calculates totals on the server", async () => {
   const originalFetch = globalThis.fetch;
-  let printifyRequest;
+  const printifyRequests = [];
   globalThis.fetch = async (request, options) => {
-    printifyRequest = { url: String(request), options };
-    return jsonResponse({ data: [printifyProduct] });
+    printifyRequests.push({ url: String(request), options });
+    return printifyResponse(request);
   };
 
   try {
     const result = await readJson(await worker.fetch(checkoutRequest("/api/checkout-summary"), baseEnv));
     assert.equal(result.status, 200);
     assert.equal(result.body.summary.subtotalCents, 5000);
-    assert.equal(result.body.summary.shipping.amountCents, 570);
-    assert.equal(result.body.summary.totalCents, 5570);
-    assert.equal(printifyRequest.url, "https://api.printify.com/v1/shops/shop-1/products.json");
-    assert.equal(printifyRequest.options.headers.Authorization, "Bearer printify-token");
+    assert.equal(result.body.summary.shipping.amountCents, 690);
+    assert.equal(result.body.summary.shipping.countryCode, "KE");
+    assert.equal(result.body.summary.shipping.provider, "printify");
+    assert.equal(result.body.summary.totalCents, 5690);
+    assert.equal(printifyRequests[0].url, "https://api.printify.com/v1/shops/shop-1/products.json");
+    assert.equal(printifyRequests[1].url, "https://api.printify.com/v2/catalog/blueprints/99/print_providers/7/shipping/standard.json");
+    assert.equal(printifyRequests[1].options.headers.Authorization, "Bearer printify-token");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -110,7 +162,7 @@ test("checkout summary reads Printify bindings and calculates totals on the serv
 
 test("checkout summary calculates default totals before an address is entered", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => jsonResponse({ data: [printifyProduct] });
+  globalThis.fetch = async (request) => printifyResponse(request);
 
   try {
     const request = new Request("https://amilunacanvasart.com/api/checkout-summary", {
@@ -118,12 +170,14 @@ test("checkout summary calculates default totals before an address is entered", 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cartItems })
     });
+    Object.defineProperty(request, "cf", { value: { country: "US" } });
     const result = await readJson(await worker.fetch(request, baseEnv));
 
     assert.equal(result.status, 200);
     assert.equal(result.body.summary.subtotalCents, 5000);
-    assert.equal(result.body.summary.shipping.amountCents, 2150);
-    assert.equal(result.body.summary.totalCents, 7150);
+    assert.equal(result.body.summary.shipping.amountCents, 1450);
+    assert.equal(result.body.summary.shipping.countryCode, "US");
+    assert.equal(result.body.summary.totalCents, 6450);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -146,7 +200,7 @@ test("Paystack initialization reads its secret and callback bindings", async () 
   const requests = [];
   globalThis.fetch = async (request, options = {}) => {
     requests.push({ url: String(request), options });
-    if (String(request).startsWith("https://api.printify.com/")) return jsonResponse({ data: [printifyProduct] });
+    if (String(request).startsWith("https://api.printify.com/")) return printifyResponse(request);
     return jsonResponse({ status: true, data: { authorization_url: "https://checkout.paystack.com/test", access_code: "access-code" } });
   };
 
@@ -157,14 +211,14 @@ test("Paystack initialization reads its secret and callback bindings", async () 
       PAYSTACK_CALLBACK_URL: "https://amilunacanvasart.com/payment-result.html"
     };
     const result = await readJson(await worker.fetch(checkoutRequest("/api/paystack-initialize"), env));
-    const paymentRequest = requests[1];
+    const paymentRequest = requests[2];
     const paymentBody = JSON.parse(paymentRequest.options.body);
 
     assert.equal(result.status, 200);
     assert.equal(result.body.ok, true);
     assert.ok(result.body.sessionToken);
     assert.equal(paymentRequest.options.headers.Authorization, "Bearer paystack-secret");
-    assert.equal(paymentBody.amount, "5570");
+    assert.equal(paymentBody.amount, "5690");
     assert.equal(paymentBody.callback_url, env.PAYSTACK_CALLBACK_URL);
   } finally {
     globalThis.fetch = originalFetch;
@@ -176,7 +230,7 @@ test("PayPal initialization reads live credentials and return URLs", async () =>
   const requests = [];
   globalThis.fetch = async (request, options = {}) => {
     requests.push({ url: String(request), options });
-    if (String(request).startsWith("https://api.printify.com/")) return jsonResponse({ data: [printifyProduct] });
+    if (String(request).startsWith("https://api.printify.com/")) return printifyResponse(request);
     if (String(request).endsWith("/v1/oauth2/token")) return jsonResponse({ access_token: "paypal-access-token" });
     return jsonResponse({ id: "paypal-order-1", links: [{ rel: "payer-action", href: "https://www.paypal.com/checkoutnow?token=paypal-order-1" }] });
   };
@@ -191,8 +245,8 @@ test("PayPal initialization reads live credentials and return URLs", async () =>
       PAYPAL_CANCEL_URL: "https://amilunacanvasart.com/checkout.html?payment=paypal-cancelled"
     };
     const result = await readJson(await worker.fetch(checkoutRequest("/api/paypal-create-order"), env));
-    const tokenRequest = requests[1];
-    const orderRequest = requests[2];
+    const tokenRequest = requests[2];
+    const orderRequest = requests[3];
     const orderBody = JSON.parse(orderRequest.options.body);
     const experience = orderBody.payment_source.paypal.experience_context;
 
@@ -207,64 +261,4 @@ test("PayPal initialization reads live credentials and return URLs", async () =>
   } finally {
     globalThis.fetch = originalFetch;
   }
-});
-
-test("Gemini room visualizer reads its Worker secret and returns an image", async () => {
-  const originalFetch = globalThis.fetch;
-  let geminiRequest;
-  globalThis.fetch = async (request, options = {}) => {
-    geminiRequest = { url: String(request), options };
-    return jsonResponse({
-      candidates: [{
-        content: {
-          parts: [{ inlineData: { mimeType: "image/png", data: "generated-image-data" } }]
-        }
-      }]
-    });
-  };
-
-  try {
-    const request = new Request("https://amilunacanvasart.com/api/gemini-room-visualizer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        artworkTitle: "Velora Flora",
-        environment: "a warm contemporary living room",
-        imageBase64: "data:image/jpeg;base64,YW1pbHVuYQ==",
-        mimeType: "image/jpeg"
-      })
-    });
-    const result = await readJson(await worker.fetch(request, {
-      ...baseEnv,
-      GEMINI_API_KEY: "gemini-secret"
-    }));
-    const geminiBody = JSON.parse(geminiRequest.options.body);
-
-    assert.equal(result.status, 200);
-    assert.equal(result.body.ok, true);
-    assert.equal(result.body.imageDataUrl, "data:image/png;base64,generated-image-data");
-    assert.equal(geminiRequest.url, "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-image:generateContent");
-    assert.equal(geminiRequest.options.headers["x-goog-api-key"], "gemini-secret");
-    assert.equal(geminiBody.contents[0].parts[1].inlineData.data, "YW1pbHVuYQ==");
-    assert.deepEqual(geminiBody.generationConfig.responseModalities, ["IMAGE"]);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("Gemini room visualizer rejects requests when its Worker secret is missing", async () => {
-  const request = new Request("https://amilunacanvasart.com/api/gemini-room-visualizer", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      artworkTitle: "Velora Flora",
-      environment: "a living room",
-      imageBase64: "YW1pbHVuYQ==",
-      mimeType: "image/jpeg"
-    })
-  });
-  const result = await readJson(await worker.fetch(request, baseEnv));
-
-  assert.equal(result.status, 503);
-  assert.equal(result.body.error, "The AI room visualizer is not configured yet.");
 });

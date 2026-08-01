@@ -202,6 +202,15 @@ body::before {
     border-color: rgba(242, 157, 157, 0.45);
 }
 
+.field select[aria-invalid="true"] {
+    border-color: rgba(242, 157, 157, 0.45);
+}
+
+.field select option {
+    color: #171914;
+    background: #f8f5ee;
+}
+
 .form-actions {
     display: flex;
     flex-wrap: wrap;

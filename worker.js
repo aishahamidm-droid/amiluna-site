@@ -1,10 +1,10 @@
+import { normalizePrintifyCountryCode } from "./country-data.js";
+
 const PRINTIFY_API_BASE = "https://api.printify.com/v1";
+const PRINTIFY_CATALOG_API_BASE = "https://api.printify.com/v2/catalog";
 const PAYSTACK_API_BASE = "https://api.paystack.co";
 const PAYPAL_SANDBOX_API_BASE = "https://api-m.sandbox.paypal.com";
 const PAYPAL_LIVE_API_BASE = "https://api-m.paypal.com";
-const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1";
-const GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
-const MAX_VISUALIZER_IMAGE_BYTES = 7 * 1024 * 1024;
 const STORE_CURRENCY = "USD";
 const CHECKOUT_SESSION_TTL_MS = 4 * 60 * 60 * 1000;
 
@@ -82,7 +82,10 @@ async function handleApiRequest(request, env, url) {
 
   switch (url.pathname) {
     case "/api/checkout-summary": {
-      const context = await buildCheckoutContext(payload, env, { requireCustomer: false });
+      const context = await buildCheckoutContext(payload, env, {
+        requireCustomer: false,
+        detectedCountryCode: request.cf?.country
+      });
       return json({ ok: true, summary: context.summary });
     }
     case "/api/paystack-initialize":
@@ -93,77 +96,9 @@ async function handleApiRequest(request, env, url) {
       return json(await createPayPalOrder(payload, env, request.url));
     case "/api/paypal-capture-order":
       return json(await capturePayPalOrder(payload, env));
-    case "/api/gemini-room-visualizer":
-      return json(await createGeminiRoomPreview(payload, env));
     default:
       throw new HttpError(404, "API endpoint not found.");
   }
-}
-
-function base64ByteLength(value) {
-  const padding = value.endsWith("==") ? 2 : value.endsWith("=") ? 1 : 0;
-  return Math.floor((value.length * 3) / 4) - padding;
-}
-
-function getGeminiImage(response) {
-  const parts = response?.candidates?.flatMap((candidate) => candidate?.content?.parts || []) || [];
-  return parts.find((part) => part?.inlineData?.data || part?.inline_data?.data) || null;
-}
-
-async function createGeminiRoomPreview(payload, env) {
-  if (!env.GEMINI_API_KEY) throw new HttpError(503, "The AI room visualizer is not configured yet.");
-
-  const imageBase64 = String(payload?.imageBase64 || "").replace(/^data:[^;]+;base64,/, "").trim();
-  const mimeType = payload?.mimeType === "image/png" ? "image/png" : "image/jpeg";
-  const artworkTitle = normalizeText(payload?.artworkTitle || "Selected AmiLuna artwork").slice(0, 140);
-  const environment = normalizeText(payload?.environment || "a refined living room").slice(0, 360);
-
-  if (!imageBase64 || base64ByteLength(imageBase64) > MAX_VISUALIZER_IMAGE_BYTES) {
-    throw new HttpError(400, "Please choose an artwork image that is smaller than 7 MB.");
-  }
-
-  const prompt = [
-    "Create one photorealistic, premium interior-design visualization.",
-    `Place the supplied AmiLuna artwork, titled "${artworkTitle}", as a single framed wall artwork in ${environment}.`,
-    "Keep the supplied artwork recognizable and undistorted. Preserve its aspect ratio, colors, and composition.",
-    "Use realistic scale, natural perspective, tasteful furniture, and soft gallery-quality lighting.",
-    "Do not add text, logos, watermarks, duplicate artworks, or people. Return an image only."
-  ].join(" ");
-
-  const response = await fetch(`${GEMINI_API_BASE}/models/${GEMINI_IMAGE_MODEL}:generateContent`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": env.GEMINI_API_KEY
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType, data: imageBase64 } }
-        ]
-      }],
-      generationConfig: {
-        responseModalities: ["IMAGE"]
-      }
-    })
-  });
-
-  const responseBody = await response.json().catch(() => null);
-  if (!response.ok) {
-    console.error("Gemini room visualizer request failed", { status: response.status });
-    throw new HttpError(502, "Unable to create an AI room preview right now. Please try again.");
-  }
-
-  const generatedImage = getGeminiImage(responseBody);
-  const imageData = generatedImage?.inlineData?.data || generatedImage?.inline_data?.data;
-  const imageMimeType = generatedImage?.inlineData?.mimeType || generatedImage?.inline_data?.mime_type || "image/png";
-  if (!imageData) throw new HttpError(502, "The AI room visualizer did not return an image. Please try again.");
-
-  return {
-    ok: true,
-    imageDataUrl: `data:${imageMimeType};base64,${imageData}`
-  };
 }
 
 async function readJson(request) {
@@ -204,7 +139,7 @@ function normalizeCustomer(rawCustomer = {}) {
     fullName: normalizeText(rawCustomer.fullName),
     email: normalizeText(rawCustomer.email),
     phone: normalizeText(rawCustomer.phone),
-    country: normalizeText(rawCustomer.country),
+    country: normalizePrintifyCountryCode(rawCustomer.country),
     region: normalizeText(rawCustomer.region),
     city: normalizeText(rawCustomer.city),
     postalCode: normalizeText(rawCustomer.postalCode),
@@ -314,6 +249,8 @@ function verifiedItems(cartItems, lookup) {
       variantTitle: variant.title || "Default",
       quantity: cartItem.quantity,
       image: primaryImage(record.product),
+      blueprintId: normalizeText(record.product.blueprint_id),
+      printProviderId: normalizeText(record.product.print_provider_id),
       unitPriceCents: Math.round(price),
       lineTotalCents: Math.round(price) * cartItem.quantity
     });
@@ -321,24 +258,96 @@ function verifiedItems(cartItems, lookup) {
   return items;
 }
 
-function calculateShipping({ itemCount, subtotalCents, customer }) {
-  if (!itemCount) return { amountCents: 0, currency: STORE_CURRENCY, label: "No shipping required", provider: "placeholder", serviceLevel: "standard" };
-  const country = customer.country.toLowerCase();
-  let base = 1800;
-  let perItem = 350;
-  if (country.includes("kenya")) { base = 450; perItem = 120; }
-  if (country === "us" || country.includes("united states")) { base = 1200; perItem = 250; }
-  if (subtotalCents >= 15000) perItem = Math.max(100, perItem - 60);
-  if (!customer.postalCode && country && !country.includes("kenya")) base += 150;
-  return { amountCents: base + Math.max(0, itemCount - 1) * perItem, currency: STORE_CURRENCY, label: "Estimated standard shipping", provider: "placeholder", serviceLevel: "standard" };
+async function fetchPrintifyStandardShipping(env, blueprintId, printProviderId) {
+  if (!blueprintId || !printProviderId) {
+    throw new HttpError(502, "A product is missing its Printify shipping configuration.");
+  }
+
+  const response = await fetch(
+    `${PRINTIFY_CATALOG_API_BASE}/blueprints/${encodeURIComponent(blueprintId)}/print_providers/${encodeURIComponent(printProviderId)}/shipping/standard.json`,
+    {
+      headers: { Authorization: `Bearer ${env.PRINTIFY_API_TOKEN}`, Accept: "application/json" },
+      cf: { cacheEverything: true, cacheTtl: 3600 }
+    }
+  );
+  if (!response.ok) throw new HttpError(502, "We could not calculate Printify shipping right now.");
+  const payload = await response.json();
+  return Array.isArray(payload?.data) ? payload.data : [];
 }
 
-async function buildCheckoutContext(payload, env, validationOptions) {
-  const { cartItems, customer } = validateCheckoutPayload(payload, validationOptions);
+function shippingEntryForVariant(entries, variantId, countryCode) {
+  const variantEntries = entries.filter((entry) => String(entry?.attributes?.variantId) === String(variantId));
+  return variantEntries.find((entry) => entry?.attributes?.country?.code === countryCode)
+    || variantEntries.find((entry) => entry?.attributes?.country?.code === "REST_OF_THE_WORLD")
+    || null;
+}
+
+async function calculatePrintifyShipping(items, env, countryCode) {
+  if (!items.length) {
+    return { amountCents: 0, currency: STORE_CURRENCY, label: "No shipping required", provider: "printify", serviceLevel: "standard", countryCode };
+  }
+  if (!countryCode) {
+    return { amountCents: 0, currency: STORE_CURRENCY, label: "Select country for shipping", provider: "printify", serviceLevel: "standard", countryCode: "" };
+  }
+
+  const profileKeys = [...new Set(items.map((item) => `${item.blueprintId}:${item.printProviderId}`))];
+  const profiles = new Map(await Promise.all(profileKeys.map(async (key) => {
+    const [blueprintId, printProviderId] = key.split(":");
+    return [key, await fetchPrintifyStandardShipping(env, blueprintId, printProviderId)];
+  })));
+
+  const groupedPlans = new Map();
+  let handlingFrom = 0;
+  let handlingTo = 0;
+
+  for (const item of items) {
+    const profile = profiles.get(`${item.blueprintId}:${item.printProviderId}`) || [];
+    const entry = shippingEntryForVariant(profile, item.variantId, countryCode);
+    const attributes = entry?.attributes;
+    const firstItem = Number(attributes?.shippingCost?.firstItem?.amount);
+    const additionalItem = Number(attributes?.shippingCost?.additionalItems?.amount);
+    const currency = attributes?.shippingCost?.firstItem?.currency;
+
+    if (!attributes || !Number.isFinite(firstItem) || !Number.isFinite(additionalItem) || currency !== STORE_CURRENCY) {
+      throw new HttpError(400, "Standard shipping is not available for every selected item in this country.");
+    }
+
+    const planId = normalizeText(attributes.shippingPlanId) || `${item.blueprintId}:${item.printProviderId}:${item.variantId}`;
+    const plan = groupedPlans.get(planId) || { additionalTotal: 0, firstItemAdjustment: 0 };
+    plan.additionalTotal += additionalItem * item.quantity;
+    plan.firstItemAdjustment = Math.max(plan.firstItemAdjustment, firstItem - additionalItem);
+    groupedPlans.set(planId, plan);
+
+    handlingFrom = Math.max(handlingFrom, Number(attributes?.handlingTime?.from) || 0);
+    handlingTo = Math.max(handlingTo, Number(attributes?.handlingTime?.to) || 0);
+  }
+
+  const amountCents = [...groupedPlans.values()].reduce(
+    (total, plan) => total + plan.additionalTotal + plan.firstItemAdjustment,
+    0
+  );
+  const handlingLabel = handlingTo
+    ? ` (${handlingFrom || handlingTo}\u2013${handlingTo} business days)`
+    : "";
+
+  return {
+    amountCents: Math.round(amountCents),
+    currency: STORE_CURRENCY,
+    label: `Printify standard shipping${handlingLabel}`,
+    provider: "printify",
+    serviceLevel: "standard",
+    countryCode
+  };
+}
+
+async function buildCheckoutContext(payload, env, { requireCustomer = true, detectedCountryCode = "" } = {}) {
+  const { cartItems, customer } = validateCheckoutPayload(payload, { requireCustomer });
   const products = await fetchPrintifyProducts(env);
-  const items = verifiedItems(cartItems, buildProductLookup(products));
-  const subtotalCents = items.reduce((total, item) => total + item.lineTotalCents, 0);
-  const shipping = calculateShipping({ itemCount: items.reduce((total, item) => total + item.quantity, 0), subtotalCents, customer });
+  const verified = verifiedItems(cartItems, buildProductLookup(products));
+  const subtotalCents = verified.reduce((total, item) => total + item.lineTotalCents, 0);
+  const countryCode = customer.country || normalizePrintifyCountryCode(detectedCountryCode);
+  const shipping = await calculatePrintifyShipping(verified, env, countryCode);
+  const items = verified.map(({ blueprintId, printProviderId, ...item }) => item);
   return {
     customer,
     summary: {

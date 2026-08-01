@@ -9,6 +9,7 @@ import { formatPrice } from "./storefront-api.js";
 import { prepareCheckoutSummary } from "./shipping-service.js";
 import { initializePayPalPayment } from "./checkout-service.js";
 import { savePendingPayment } from "./payment-store.js";
+import { PRINTIFY_COUNTRIES, normalizePrintifyCountryCode } from "./country-data.js";
 
 const form = document.getElementById("checkout-form");
 const feedback = document.getElementById("checkout-feedback");
@@ -19,6 +20,7 @@ const loadingState = document.getElementById("checkout-loading");
 const refreshButton = document.getElementById("refresh-summary-btn");
 const saveButton = document.getElementById("save-checkout-btn");
 const paypalButton = document.getElementById("paypal-button");
+const countrySelect = form.elements.namedItem("country");
 
 let isSummaryLoading = false;
 let isPaymentLoading = false;
@@ -146,6 +148,11 @@ function renderSummary(summary) {
   verifiedSummary = summary;
   renderCartItems(summary.items);
 
+  if (!countrySelect.value && summary.shipping.countryCode) {
+    countrySelect.value = summary.shipping.countryCode;
+    writeCheckoutDraft(getCustomerFromForm());
+  }
+
   summaryContainer.innerHTML = `
     <div class="summary-row"><span>Products</span><strong>${summary.itemCount}</strong></div>
     <div class="summary-row"><span>Subtotal</span><strong>${formatPrice(summary.subtotalCents)}</strong></div>
@@ -162,16 +169,24 @@ function populateDraft() {
   Object.entries(draft).forEach(([name, value]) => {
     const field = form.elements.namedItem(name);
     if (field) {
-      field.value = value;
+      field.value = name === "country" ? normalizePrintifyCountryCode(value) : value;
     }
   });
+}
+
+function populateCountryOptions() {
+  const options = document.createDocumentFragment();
+  PRINTIFY_COUNTRIES.forEach(([code, name]) => {
+    options.appendChild(new Option(name, code));
+  });
+  countrySelect.appendChild(options);
 }
 
 function validateForm() {
   const customer = getCustomerFromForm();
   const errors = [];
 
-  form.querySelectorAll("input").forEach((field) => {
+  form.querySelectorAll("input, select").forEach((field) => {
     field.removeAttribute("aria-invalid");
   });
 
@@ -179,7 +194,7 @@ function validateForm() {
     ["fullName", "Please enter the full name."],
     ["email", "Please enter a valid email address."],
     ["phone", "Please enter the phone number."],
-    ["country", "Please enter the country."],
+    ["country", "Please select the country."],
     ["region", "Please enter the county or state."],
     ["city", "Please enter the city."],
     ["streetAddress", "Please enter the street address."]
@@ -288,6 +303,11 @@ function initDraftAutosave() {
   form.addEventListener("input", () => {
     writeCheckoutDraft(getCustomerFromForm());
   });
+
+  countrySelect.addEventListener("change", async () => {
+    writeCheckoutDraft(getCustomerFromForm());
+    await refreshSummary();
+  });
 }
 
 function initForm() {
@@ -349,6 +369,7 @@ function initForm() {
 }
 
 function initCheckout() {
+  populateCountryOptions();
   populateDraft();
   bindCartActions();
   initDraftAutosave();

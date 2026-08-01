@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="commerce.css" />
     <link rel="stylesheet" href="gallery.css" />
-    <link rel="stylesheet" href="gallery-mode-switcher.css" />
 </head>
 <body>
 
@@ -29,7 +28,7 @@
         <p class="subtext" id="experience-subtext">A guided cinematic walk through the room, moving across each artwork before returning to the center piece.</p>
     </section>
 
-    <section class="tour-showcase" aria-label="AmiLuna gallery walkthrough">
+    <section class="tour-showcase" aria-label="AmiLuna gallery walkthrough" style="grid-template-columns: minmax(0, 1fr);">
         <div class="tour-stage">
             <!-- VIEW 1: 3D Canvas Walkthrough -->
             <div id="view-3d-gallery" class="view-content active" style="width: 100%; height: 100%; position: relative;">
@@ -45,78 +44,11 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: AI Interior Setting Mode -->
-            <div id="view-ai-design" class="view-content" style="display: none; width: 100%; height: 100%; padding: 3rem; box-sizing: border-box; background: rgba(18, 18, 18, 0.95); justify-content: center; align-items: center; flex-direction: column;">
-                <div style="max-width: 500px; width: 100%;">
-                    <p class="tour-kicker">AI Powered</p>
-                    <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #fff; margin-bottom: 1rem;">Visualize In Your Room</h2>
-                    <p style="color: #a0a0a0; font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.6;">Pick an artwork and describe the setting where it will hang to see Gemini dynamically set up the 3D room's mood and lighting.</p>
-
-                    <form id="ai-generator-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
-                        
-                        <!-- Step 1: Canvas Selection (Populated dynamically by gallery.js) -->
-                        <div>
-                            <label for="ai-artwork" style="font-size: 0.85rem; color: #ccc; display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Select Artwork</label>
-                            <select id="ai-artwork" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 0.95rem;">
-                                <option value="all" style="background: #111;">Loading artworks...</option>
-                            </select>
-                        </div>
-
-                        <!-- Step 2: Custom Setting Input -->
-                        <div>
-                            <label for="ai-prompt" style="font-size: 0.85rem; color: #ccc; display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Where should it be displayed?</label>
-                            <input type="text" id="ai-prompt" list="ai-room-suggestions" placeholder="Choose or describe a room, e.g. luxury living room..." style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" required />
-                            <datalist id="ai-room-suggestions">
-                                <option value="a warm, contemporary living room"></option>
-                                <option value="a calm, professional office"></option>
-                                <option value="a serene bedroom"></option>
-                                <option value="a refined dining room"></option>
-                                <option value="a boutique hotel lobby"></option>
-                                <option value="a quiet coffee shop"></option>
-                            </datalist>
-                        </div>
-
-                        <button type="submit" id="ai-generate-btn" style="padding: 1rem; background: #c5a059; color: #000; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; transition: background 0.2s;">
-                            Generate & Visualize
-                        </button>
-                    </form>
-                    <div id="ai-visualizer-status" role="status" aria-live="polite" style="margin-top: 1rem; color: #d7c9aa; line-height: 1.5;"></div>
-                    <div id="ai-visualizer-result" hidden style="margin-top: 1.25rem; border: 1px solid rgba(197,160,89,0.4); border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.25);">
-                        <img id="ai-visualizer-image" alt="AI generated room preview" style="display:block; width:100%; height:auto;" />
-                    </div>
-                </div>
-            </div>
         </div>
-
-        <!-- RIGHT SIDEBAR: SELECTOR MODES -->
-        <aside class="tour-panel">
-            <p class="tour-panel-label">Views & Experiences</p>
-            <h3>Select Mode</h3>
-            
-            <div class="tour-outline">
-                <button class="tour-outline-step active" id="mode-3d-btn" type="button" aria-pressed="true">
-                    <span class="step-num">01</span>
-                    <span class="mode-copy">
-                        <span class="mode-title">3D Gallery View</span>
-                        <span class="mode-description">Cinematic walkthrough across the room and featured collection.</span>
-                    </span>
-                </button>
-
-                <button class="tour-outline-step" id="mode-ai-btn" type="button" aria-pressed="false">
-                    <span class="step-num">02</span>
-                    <span class="mode-copy">
-                        <span class="mode-title">AI Room Visualizer</span>
-                        <span class="mode-description">Place chosen artwork in custom real-world settings and environments.</span>
-                    </span>
-                </button>
-            </div>
-        </aside>
     </section>
 </main>
 
 <script type="module" src="./gallery-tour.js"></script>
-<script type="module" src="./gallery-mode-switcher.js"></script>
-<script type="module" src="./room-visualizer.js"></script>
 <script type="module" src="./commerce-ui.js"></script>
 </body>
 </html>
