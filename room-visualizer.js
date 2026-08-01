@@ -1,4 +1,4 @@
-import { buildFunctionUrl, buildPublicAssetUrl } from "./site-runtime.js";
+import { buildPaymentApiUrl, buildPublicAssetUrl } from "./site-runtime.js";
 
 const artworks = [
   { id: "art1", title: "Vibrant Multicolor Calla", src: "artworks/art1.jpg" },
@@ -88,7 +88,7 @@ form?.addEventListener("submit", async (event) => {
 
   try {
     const { imageBase64, mimeType } = await loadArtworkImage(artwork);
-    const response = await fetch(buildFunctionUrl("/.netlify/functions/gemini-room-visualizer"), {
+    const response = await fetch(buildPaymentApiUrl("/api/gemini-room-visualizer"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -208,3 +208,63 @@ test("PayPal initialization reads live credentials and return URLs", async () =>
     globalThis.fetch = originalFetch;
   }
 });
+
+test("Gemini room visualizer reads its Worker secret and returns an image", async () => {
+  const originalFetch = globalThis.fetch;
+  let geminiRequest;
+  globalThis.fetch = async (request, options = {}) => {
+    geminiRequest = { url: String(request), options };
+    return jsonResponse({
+      candidates: [{
+        content: {
+          parts: [{ inlineData: { mimeType: "image/png", data: "generated-image-data" } }]
+        }
+      }]
+    });
+  };
+
+  try {
+    const request = new Request("https://amilunacanvasart.com/api/gemini-room-visualizer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        artworkTitle: "Velora Flora",
+        environment: "a warm contemporary living room",
+        imageBase64: "data:image/jpeg;base64,YW1pbHVuYQ==",
+        mimeType: "image/jpeg"
+      })
+    });
+    const result = await readJson(await worker.fetch(request, {
+      ...baseEnv,
+      GEMINI_API_KEY: "gemini-secret"
+    }));
+    const geminiBody = JSON.parse(geminiRequest.options.body);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.ok, true);
+    assert.equal(result.body.imageDataUrl, "data:image/png;base64,generated-image-data");
+    assert.equal(geminiRequest.url, "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-image:generateContent");
+    assert.equal(geminiRequest.options.headers["x-goog-api-key"], "gemini-secret");
+    assert.equal(geminiBody.contents[0].parts[1].inlineData.data, "YW1pbHVuYQ==");
+    assert.deepEqual(geminiBody.generationConfig.responseModalities, ["IMAGE"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gemini room visualizer rejects requests when its Worker secret is missing", async () => {
+  const request = new Request("https://amilunacanvasart.com/api/gemini-room-visualizer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      artworkTitle: "Velora Flora",
+      environment: "a living room",
+      imageBase64: "YW1pbHVuYQ==",
+      mimeType: "image/jpeg"
+    })
+  });
+  const result = await readJson(await worker.fetch(request, baseEnv));
+
+  assert.equal(result.status, 503);
+  assert.equal(result.body.error, "The AI room visualizer is not configured yet.");
+});

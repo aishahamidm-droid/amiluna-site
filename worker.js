@@ -2,6 +2,9 @@ const PRINTIFY_API_BASE = "https://api.printify.com/v1";
 const PAYSTACK_API_BASE = "https://api.paystack.co";
 const PAYPAL_SANDBOX_API_BASE = "https://api-m.sandbox.paypal.com";
 const PAYPAL_LIVE_API_BASE = "https://api-m.paypal.com";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1";
+const GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
+const MAX_VISUALIZER_IMAGE_BYTES = 7 * 1024 * 1024;
 const STORE_CURRENCY = "USD";
 const CHECKOUT_SESSION_TTL_MS = 4 * 60 * 60 * 1000;
 
@@ -90,9 +93,77 @@ async function handleApiRequest(request, env, url) {
       return json(await createPayPalOrder(payload, env, request.url));
     case "/api/paypal-capture-order":
       return json(await capturePayPalOrder(payload, env));
+    case "/api/gemini-room-visualizer":
+      return json(await createGeminiRoomPreview(payload, env));
     default:
-      throw new HttpError(404, "Payment endpoint not found.");
+      throw new HttpError(404, "API endpoint not found.");
   }
+}
+
+function base64ByteLength(value) {
+  const padding = value.endsWith("==") ? 2 : value.endsWith("=") ? 1 : 0;
+  return Math.floor((value.length * 3) / 4) - padding;
+}
+
+function getGeminiImage(response) {
+  const parts = response?.candidates?.flatMap((candidate) => candidate?.content?.parts || []) || [];
+  return parts.find((part) => part?.inlineData?.data || part?.inline_data?.data) || null;
+}
+
+async function createGeminiRoomPreview(payload, env) {
+  if (!env.GEMINI_API_KEY) throw new HttpError(503, "The AI room visualizer is not configured yet.");
+
+  const imageBase64 = String(payload?.imageBase64 || "").replace(/^data:[^;]+;base64,/, "").trim();
+  const mimeType = payload?.mimeType === "image/png" ? "image/png" : "image/jpeg";
+  const artworkTitle = normalizeText(payload?.artworkTitle || "Selected AmiLuna artwork").slice(0, 140);
+  const environment = normalizeText(payload?.environment || "a refined living room").slice(0, 360);
+
+  if (!imageBase64 || base64ByteLength(imageBase64) > MAX_VISUALIZER_IMAGE_BYTES) {
+    throw new HttpError(400, "Please choose an artwork image that is smaller than 7 MB.");
+  }
+
+  const prompt = [
+    "Create one photorealistic, premium interior-design visualization.",
+    `Place the supplied AmiLuna artwork, titled "${artworkTitle}", as a single framed wall artwork in ${environment}.`,
+    "Keep the supplied artwork recognizable and undistorted. Preserve its aspect ratio, colors, and composition.",
+    "Use realistic scale, natural perspective, tasteful furniture, and soft gallery-quality lighting.",
+    "Do not add text, logos, watermarks, duplicate artworks, or people. Return an image only."
+  ].join(" ");
+
+  const response = await fetch(`${GEMINI_API_BASE}/models/${GEMINI_IMAGE_MODEL}:generateContent`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": env.GEMINI_API_KEY
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType, data: imageBase64 } }
+        ]
+      }],
+      generationConfig: {
+        responseModalities: ["IMAGE"]
+      }
+    })
+  });
+
+  const responseBody = await response.json().catch(() => null);
+  if (!response.ok) {
+    console.error("Gemini room visualizer request failed", { status: response.status });
+    throw new HttpError(502, "Unable to create an AI room preview right now. Please try again.");
+  }
+
+  const generatedImage = getGeminiImage(responseBody);
+  const imageData = generatedImage?.inlineData?.data || generatedImage?.inline_data?.data;
+  const imageMimeType = generatedImage?.inlineData?.mimeType || generatedImage?.inline_data?.mime_type || "image/png";
+  if (!imageData) throw new HttpError(502, "The AI room visualizer did not return an image. Please try again.");
+
+  return {
+    ok: true,
+    imageDataUrl: `data:${imageMimeType};base64,${imageData}`
+  };
 }
 
 async function readJson(request) {
